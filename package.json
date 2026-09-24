@@ -1,0 +1,32 @@
+{
+  "name": "floodroute-ai",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI-Powered Flood-Aware Route Planning, Weather Intelligence, Community Reporting and Emergency Alert Platform for India",
+  "workspaces": [
+    "packages/*",
+    "server",
+    "apps/web",
+    "apps/admin"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -p \"[{name}]\" -n \"SERVER,WEB,ADMIN\" -c \"blue.bold,green.bold,magenta.bold\" \"npm run dev --workspace=server\" \"npm run dev --workspace=apps/web\" \"npm run dev --workspace=apps/admin\"",
+    "dev:all": "concurrently -k -p \"[{name}]\" -n \"SERVER,WEB,ADMIN,AI\" -c \"blue.bold,green.bold,magenta.bold,yellow.bold\" \"npm run dev --workspace=server\" \"npm run dev --workspace=apps/web\" \"npm run dev --workspace=apps/admin\" \"python -m uvicorn app.main:app --app-dir apps/ai-service --port 8000 --reload\"",
+    "build": "npm run build --workspace=@floodroute/shared && npm run build --workspace=server && npm run build --workspace=apps/web && npm run build --workspace=apps/admin",
+    "test": "npm run test --workspace=server",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:seed": "ts-node prisma/seed.ts",
+    "start:server": "npm run start --workspace=server",
+    "start:ai": "python -m uvicorn app.main:app --app-dir apps/ai-service --port 8000"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "prisma": "^5.14.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.14.0"
+  }
+}
