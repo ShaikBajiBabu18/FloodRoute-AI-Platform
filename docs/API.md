@@ -1,124 +1,144 @@
-# FloodRoute AI — REST API Reference Specification
+# FloodRoute AI — Enterprise API Reference Manual
 
-Base URL: `http://localhost:5000/api`
+## 1. Overview & Base URLs
+FloodRoute AI provides a resilient RESTful JSON API and real-time WebSocket event grid. All endpoints are documented via OpenAPI 3.0 at `/api/docs`.
+
+- **Base Gateway URL**: `http://localhost:5000/api`
+- **FastAPI Vision Microservice**: `http://127.0.0.1:8000`
+- **Interactive Swagger UI**: `http://localhost:5000/api/docs`
+- **OpenAPI 3.0 JSON Specification**: `http://localhost:5000/api/openapi.json`
 
 ---
 
-## 1. Authentication (`/api/auth`)
+## 2. Authentication & Authorization
+All authenticated routes require a Bearer token in the `Authorization` header:
+```http
+Authorization: Bearer <JWT_ACCESS_TOKEN>
+```
 
 ### `POST /api/auth/register`
-Creates a new citizen profile.
-```json
-{
-  "name": "Rohan Verma",
-  "email": "rohan@example.com",
-  "password": "Password123!",
-  "phone": "+91-9876543210"
-}
-```
+Register a new citizen or community sentinel.
+- **Request Body**:
+  ```json
+  {
+    "name": "Arun Kumar",
+    "email": "arun@example.com",
+    "password": "SecurePassword123!",
+    "phone": "+919876543210"
+  }
+  ```
+- **Response `201 Created`**:
+  ```json
+  {
+    "user": { "id": "uuid", "name": "Arun Kumar", "email": "arun@example.com", "role": "CITIZEN" },
+    "token": "eyJhbGciOi..."
+  }
+  ```
 
 ### `POST /api/auth/login`
-Authenticates a user or incident command operator. Returns JWT bearer token.
-```json
-{
-  "email": "admin@floodroute.ai",
-  "password": "ChangeMe123!"
-}
-```
-
-### `GET /api/auth/me`
-Headers: `Authorization: Bearer <token>`
-Returns authenticated identity and roles.
+Authenticate credentials and establish a session.
+- **Response `200 OK`**: Returns user profile and signed JWT token.
 
 ---
 
-## 2. Weather & Storm Telemetry (`/api/weather`)
+## 3. Hydrological & AI Prediction Endpoints
 
-### `GET /api/weather/current?lat=13.08&lng=80.27`
-Returns 10-parameter atmospheric observations, source attribution, and freshness status.
-
-### `GET /api/weather/forecast?lat=13.08&lng=80.27`
-Returns 24-hour hourly precipitation curves and 7-day outlook.
+### `POST /api/flood/predict`
+Calculates explainable predictive flood risk for any coordinates in India.
+- **Request Body**:
+  ```json
+  {
+    "currentRainfallMm": 45.2,
+    "forecastRainfallMm": 85.0,
+    "elevationM": 6.4,
+    "riverProximityKm": 1.2,
+    "drainageDensityIndex": 0.35,
+    "communityReportsCount": 8,
+    "activeRoadClosuresCount": 2,
+    "officialWarningsCount": 1
+  }
+  ```
+- **Response `200 OK`**:
+  ```json
+  {
+    "floodProbability": 78,
+    "confidence": 88,
+    "riskLevel": "CRITICAL",
+    "explanation": "High precipitation (45.2 mm/h) combined with low elevation (6.4m) and close proximity to Adyar River creates extreme inundation potential.",
+    "affectedRadius": 1.8,
+    "factors": [
+      { "factor": "Precipitation Rate", "contributionPercent": 35, "status": "SEVERE" },
+      { "factor": "Topography / Elevation", "contributionPercent": 24, "status": "HIGH" },
+      { "factor": "River / Basin Proximity", "contributionPercent": 22, "status": "HIGH" }
+    ],
+    "accessibility": {
+      "twoWheeler": false,
+      "hatchbackSedan": false,
+      "suv": true,
+      "heavyEmergencyVehicle": true
+    },
+    "disclaimer": "AI FLOOD PREDICTION: Guidance only; not a substitute for official NDMA/IMD declarations."
+  }
+  ```
 
 ---
 
-## 3. Flood Intelligence & Risk Engine (`/api/flood`)
+## 4. Disaster Routing & Corridor Analysis
 
-### `GET /api/flood/risk?lat=13.08&lng=80.27&location=Chennai`
-Runs multi-vector explainable risk calculations across rainfall, CWC river stages, nearby reports, and active alerts.
+### `POST /api/routes/calculate`
+Calculates dual routes: **Fastest Route** vs **Flood-Aware Safe Route**.
+- **Request Body**:
+  ```json
+  {
+    "origin": { "lat": 12.9716, "lng": 80.2435, "name": "Kotturpuram" },
+    "destination": { "lat": 12.9229, "lng": 80.1275, "name": "Tambaram" },
+    "preferSafe": true,
+    "vehicleType": "FOUR_WHEELER"
+  }
+  ```
+- **Response `200 OK`**:
+  Returns GeoJSON line coordinates for both corridors, inundation exposure scores, elevation profiles, and diversion warnings.
 
 ---
 
-## 4. Community Flood Reports (`/api/reports`)
+## 5. Incident Reporting & Image Analysis
 
-### `POST /api/reports`
-Content-Type: `multipart/form-data`
-Payload fields: `hazardType`, `severity`, `waterLevel`, `locationName`, `latitude`, `longitude`, `description`, `photo` (file).
-Generates `reportCode` (e.g. `FR-2026-000182`) and triggers asynchronous OpenCV vision analysis.
+### `POST /api/reports` (Multipart / Form-Data)
+Submit an on-the-ground flood report with optional photograph.
+- **Form Fields**:
+  - `latitude` (Float), `longitude` (Float), `locationName` (String)
+  - `severity` (`LOW` | `MEDIUM` | `HIGH` | `CRITICAL`)
+  - `waterLevel` (`ANKLE_DEEP` | `KNEE_DEEP` | `WAIST_DEEP` | `SUBMERGED`)
+  - `description` (String)
+  - `image` (File: JPEG, PNG, WebP)
+- **Automatic Execution**:
+  Forwarded directly to FastAPI Neural Microservice on port 8000 for flood detection and depth verification.
 
 ### `GET /api/reports`
-Query params: `status`, `severity`, `hazardType`, `state`, `search`, `limit`.
-
-### `PUT /api/reports/:id/status` (Admin / Moderator Only)
-```json
-{
-  "status": "VERIFIED",
-  "severity": "CRITICAL",
-  "notes": "Verified against traffic camera telemetry."
-}
-```
+Query verified or active reports with optional spatial bounding box or district filters.
 
 ---
 
-## 5. Route Planner (`/api/routes`)
-
-### `POST /api/routes`
-```json
-{
-  "originLat": 12.9805,
-  "originLng": 80.2195,
-  "destLat": 12.9892,
-  "destLng": 80.2483,
-  "avoidFlooded": true,
-  "avoidHighRisk": true,
-  "preferSafer": true
-}
-```
-Returns alternative routes, GeoJSON geometry, distance, duration, hazard counts, and explainable risk reasons.
-
-### `GET /api/routes/geocode?q=Velachery`
-India-wide geocoded location lookup via OpenStreetMap Nominatim.
-
----
-
-## 6. Official & Platform Alerts (`/api/alerts`)
+## 6. Official Alerts, Rivers & Telemetry
 
 ### `GET /api/alerts`
-Returns active statutory alerts (NDMA/SACHET, IMD, CWC) and platform advisories.
+Retrieves active NDMA, IMD, and State Disaster Authority warning bulletins.
 
-### `POST /api/alerts` (Admin Only)
-Broadcasts a new emergency advisory stamped as `FloodRoute AI Platform Alert`.
+### `GET /api/rivers`
+Central Water Commission (CWC) gauging stations across India (Brahmaputra, Yamuna, Adyar, Cooum, Godavari) reporting stage heights ($m$), danger levels, and discharge rates ($m^3/s$).
 
----
+### `GET /api/districts`
+National district registry returning risk scoring, closures, and relief camp capacities.
 
-## 7. Road Conditions (`/api/roads`)
-
-### `GET /api/roads`
-Returns current road blockages, submerged sectors, and municipal closures.
-
-### `POST /api/roads` (Admin Only)
-Records an impassable or caution sector for real-time route engine avoidance.
+### `GET /api/system/health-deep`
+Performs live end-to-end diagnostics across Node.js, PostgreSQL/Prisma, FastAPI, and weather pipelines.
 
 ---
 
-## 8. Incident Command Metrics (`/api/admin`)
+## 7. Real-Time WebSocket Event Grid (Socket.IO)
 
-- `GET /api/admin/dashboard`: Real-time KPI counters from database.
-- `GET /api/admin/analytics`: Severity, state, and status distributions for Recharts.
-- `GET /api/admin/ai-analytics`: Computer vision classification statistics.
-- `GET /api/admin/audit-logs`: Immutable administrative audit trail.
-
----
-
-## 9. Diagnostic Health (`/health` & `/api/health`)
-Returns live connectivity state for database, weather telemetry, routing grid, alert pipelines, and AI vision microservice.
+Clients connect to `ws://localhost:5000/socket.io`:
+- **`report.created`**: Broadcast when a citizen submits an inundation report.
+- **`report.statusChanged`**: Broadcast when a moderator verifies or resolves an incident.
+- **`alert.issued`**: Broadcast when a statutory warning polygon is published.
+- **`road.blocked`**: Immediate routing invalidation event for impassable roads.

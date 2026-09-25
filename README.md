@@ -10,10 +10,18 @@
 [![Docker Support](https://img.shields.io/badge/Docker-Multi--Container-2496ED.svg)](docker-compose.yml)
 [![OpenAPI 3.0](https://img.shields.io/badge/API-OpenAPI%203.0%20%2F%20Swagger-85EA2D.svg)](http://localhost:5000/api/docs)
 
+<p align="center">
+  <img src="docs/images/gis_live_map.jpg" alt="FloodRoute AI Live GIS Navigation Deck" width="100%" />
+</p>
+
 ---
 
 ## 1. Executive Summary & Mission
 **FloodRoute AI** is India’s national-scale, AI-powered disaster management and flood-resilient transit intelligence platform. Engineered for extreme monsoon inundation events, FloodRoute AI combines live hydrometeorological radar telemetry, official statutory alerts (NDMA, IMD, CWC), verified crowdsourced community hazard reports, and explainable multi-variable predictive modeling to ensure zero trapped commuters and rapid emergency relief dispatch.
+
+<p align="center">
+  <img src="docs/images/command_center.jpg" alt="FloodRoute AI Emergency Command Room" width="100%" />
+</p>
 
 ```mermaid
 flowchart TD

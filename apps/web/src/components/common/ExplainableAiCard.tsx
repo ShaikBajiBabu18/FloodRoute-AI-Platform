@@ -84,7 +84,7 @@ export const ExplainableAiCard: React.FC<ExplainableAiCardProps> = ({
         <div className="flex items-center gap-2">
           <span className="px-2.5 py-1 rounded-md text-[11px] font-mono font-bold tracking-wider uppercase bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-            AI FLOOD PREDICTION
+            AI ESTIMATE • AI FLOOD PREDICTION
           </span>
           <span className="text-xs text-slate-400">Confidence: {confidence}%</span>
         </div>

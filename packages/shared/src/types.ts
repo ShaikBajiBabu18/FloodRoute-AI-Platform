@@ -288,7 +288,7 @@ export interface PredictiveOutput {
   explanation: string;
   affectedRadius: number; // in km
   timestamp: string;
-  label: 'AI FLOOD PREDICTION';
+  label: 'AI FLOOD PREDICTION' | 'AI ESTIMATE';
   disclaimer: string;
   factors: ExplainableFactorContribution[];
   accessibility: VehicleAccessibilityResult;
