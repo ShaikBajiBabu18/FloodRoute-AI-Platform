@@ -2,7 +2,7 @@ import http from 'http';
 import { app } from './app';
 import { ENV } from './config/env';
 import { connectDatabase, disconnectDatabase } from './config/database';
-import { socketService } from './services/socketService';
+import { socketService } from './websocket/socket.service';
 
 const server = http.createServer(app);
 

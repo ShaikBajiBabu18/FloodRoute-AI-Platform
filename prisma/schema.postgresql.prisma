@@ -1,4 +1,4 @@
-// FloodRoute AI Prisma PostgreSQL Schema (Production / Docker)
+// FloodRoute AI Prisma PostgreSQL Database Schema (Production / Docker / Cloud)
 
 generator client {
   provider = "prisma-client-js"
@@ -9,46 +9,137 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// 1. User
 model User {
-  id             String          @id @default(uuid())
-  email          String          @unique
-  passwordHash   String
-  name           String
-  phone          String?
-  role           String          @default("CITIZEN")
-  isActive       Boolean         @default(true)
-  lastActive     DateTime?
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  id                    String          @id @default(uuid())
+  email                 String          @unique
+  passwordHash          String
+  name                  String
+  phone                 String?
+  role                  String          @default("CITIZEN") // CITIZEN, MODERATOR, ADMIN, SUPER_ADMIN
+  isActive              Boolean         @default(true)
+  emailVerified         Boolean         @default(false)
+  resetPasswordToken    String?
+  resetPasswordExpires  DateTime?
+  lastActive            DateTime?
+  deletedAt             DateTime?
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
 
-  reports        FloodReport[]
-  savedLocations SavedLocation[]
-  routeRequests  RouteRequest[]
-  notifications  Notification[]
-  auditLogs      AuditLog[]
+  reports               FloodReport[]
+  savedLocations        SavedLocation[]
+  routeRequests         RouteRequest[]
+  notifications         Notification[]
+  auditLogs             AuditLog[]
+  sessions              Session[]
+  adminProfile          Admin?
+  communityReports      CommunityReport[]
 
   @@index([email])
   @@index([role])
   @@index([createdAt])
+  @@index([deletedAt])
 }
 
+// 2. Admin
+model Admin {
+  id             String    @id @default(uuid())
+  userId         String    @unique
+  roleId         String?
+  department     String    @default("NDRF / State Disaster Response")
+  badgeNumber    String?
+  clearanceLevel Int       @default(1)
+  notes          String?
+  deletedAt      DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roleObj        Role?     @relation(fields: [roleId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([clearanceLevel])
+}
+
+// 3. Role
+model Role {
+  id              String    @id @default(uuid())
+  name            String    @unique // CITIZEN, MODERATOR, ADMIN, SUPER_ADMIN
+  description     String?
+  permissionsJson String    // Serialized array of permission strings
+  deletedAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  admins          Admin[]
+
+  @@index([name])
+}
+
+// 4. Session
+model Session {
+  id           String    @id @default(uuid())
+  userId       String
+  token        String    @unique
+  refreshToken String?   @unique
+  userAgent    String?
+  ipAddress    String?
+  isRevoked    Boolean   @default(false)
+  expiresAt    DateTime
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@index([refreshToken])
+  @@index([expiresAt])
+}
+
+// 5. SavedLocation
 model SavedLocation {
-  id           String   @id @default(uuid())
+  id           String    @id @default(uuid())
   userId       String
   name         String
   locationName String
   latitude     Float
   longitude    Float
   notes        String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  deletedAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([latitude, longitude])
+  @@index([deletedAt])
 }
 
+// 6. Location
+model Location {
+  id              String    @id @default(uuid())
+  name            String
+  district        String?
+  state           String?
+  country         String    @default("India")
+  latitude        Float
+  longitude       Float
+  elevationM      Float?
+  population      Int?
+  isCriticalZone  Boolean   @default(false)
+  riskLevel       String    @default("LOW")
+  deletedAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([latitude, longitude])
+  @@index([state, district])
+  @@index([isCriticalZone])
+}
+
+// 7. FloodReport
 model FloodReport {
   id              String      @id @default(uuid())
   reportCode      String      @unique
@@ -69,54 +160,106 @@ model FloodReport {
   verifiedBy      String?
   upvotes         Int         @default(0)
   isDemo          Boolean     @default(false)
+  deletedAt       DateTime?
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
-  user            User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user            User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
   images          FloodImage[]
   aiAnalysis      AIAnalysis?
+  communityItems  CommunityReport[]
 
   @@index([latitude, longitude])
   @@index([severity])
   @@index([status])
   @@index([createdAt])
   @@index([locationName])
+  @@index([deletedAt])
 }
 
+// 8. FloodImage
 model FloodImage {
   id           String      @id @default(uuid())
   reportId     String
   imageUrl     String
+  thumbnailUrl String?
   fileName     String
   fileSize     Int?
   mimeType     String?
+  checksum     String?
+  width        Int?
+  height       Int?
   createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 
   report       FloodReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
 
   @@index([reportId])
 }
 
-model AIAnalysis {
-  id                  String      @id @default(uuid())
-  reportId            String      @unique
-  floodDetected       Boolean
-  estimatedSeverity   String
-  roadVisibility      String
-  vehicleAccessibility String
-  confidence          Int
-  waterCoveragePercent Float?
-  dominantColor       String?
-  explanation         String
-  disclaimer          String      @default("AI-assisted estimate. Not an official disaster determination.")
-  analyzedAt          DateTime    @default(now())
+// 9. RoadCondition
+model RoadCondition {
+  id                     String    @id @default(uuid())
+  roadName               String
+  locationName           String
+  condition              String
+  severity               String
+  reason                 String
+  latitude               Float
+  longitude              Float
+  startLatitude          Float?
+  startLongitude         Float?
+  endLatitude            Float?
+  endLongitude           Float?
+  source                 String    @default("Municipal Traffic Control")
+  isOfficial             Boolean   @default(true)
+  startTime              DateTime  @default(now())
+  expectedResolutionTime DateTime?
+  updatedBy              String?
+  isDemo                 Boolean   @default(false)
+  deletedAt              DateTime?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
 
-  report              FloodReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
-
-  @@index([estimatedSeverity])
-  @@index([floodDetected])
+  @@index([latitude, longitude])
+  @@index([condition])
+  @@index([severity])
+  @@index([updatedAt])
+  @@index([deletedAt])
 }
 
+// 10. WeatherCache
+model WeatherCache {
+  id                String    @id @default(uuid())
+  cacheKey          String    @unique
+  latitude          Float
+  longitude         Float
+  locationName      String
+  temperatureC      Float
+  feelsLikeC        Float?
+  humidityPercent   Int
+  windSpeedKmh      Float
+  windDirectionDeg  Float?
+  pressureHpa       Float?
+  rainfallMm        Float
+  visibilityKm      Float?
+  condition         String
+  weatherRisk       String
+  payloadJson       String
+  source            String
+  isDemo            Boolean   @default(false)
+  expiresAt         DateTime
+  fetchedAt         DateTime  @default(now())
+  deletedAt         DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([latitude, longitude])
+  @@index([expiresAt])
+  @@index([cacheKey])
+}
+
+// Legacy alias / backward-compat model for weather records
 model WeatherRecord {
   id               String   @id @default(uuid())
   latitude         Float
@@ -141,27 +284,32 @@ model WeatherRecord {
   @@index([timestamp])
 }
 
+// 11. WeatherAlert
 model WeatherAlert {
-  id           String   @id @default(uuid())
+  id           String    @id @default(uuid())
   title        String
   description  String
   severity     String
   area         String
   latitude     Float?
   longitude    Float?
-  source       String   @default("IMD")
+  source       String    @default("IMD")
   startTime    DateTime
   expiryTime   DateTime
-  isActive     Boolean  @default(true)
-  isDemo       Boolean  @default(false)
-  createdAt    DateTime @default(now())
+  isActive     Boolean   @default(true)
+  isDemo       Boolean   @default(false)
+  deletedAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   @@index([severity])
   @@index([isActive])
+  @@index([deletedAt])
 }
 
+// 12. DisasterAlert
 model DisasterAlert {
-  id           String   @id @default(uuid())
+  id           String    @id @default(uuid())
   title        String
   description  String
   severity     String
@@ -172,49 +320,53 @@ model DisasterAlert {
   district     String?
   latitude     Float
   longitude    Float
-  radiusKm     Float    @default(15)
+  radiusKm     Float     @default(15)
   startTime    DateTime
   expiryTime   DateTime
-  isActive     Boolean  @default(true)
-  isOfficial   Boolean  @default(true)
-  isDemo       Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  isActive     Boolean   @default(true)
+  isOfficial   Boolean   @default(true)
+  isDemo       Boolean   @default(false)
+  deletedAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   @@index([latitude, longitude])
   @@index([severity])
   @@index([isActive])
   @@index([source])
+  @@index([deletedAt])
 }
 
-model RoadCondition {
-  id                     String    @id @default(uuid())
-  roadName               String
-  locationName           String
-  condition              String
-  severity               String
-  reason                 String
-  latitude               Float
-  longitude              Float
-  startLatitude          Float?
-  startLongitude         Float?
-  endLatitude            Float?
-  endLongitude           Float?
-  source                 String    @default("Municipal Traffic Control")
-  isOfficial             Boolean   @default(true)
-  startTime              DateTime  @default(now())
-  expectedResolutionTime DateTime?
-  updatedBy              String?
-  isDemo                 Boolean   @default(false)
-  createdAt              DateTime  @default(now())
-  updatedAt              DateTime  @updatedAt
+// 13. CommunityReport
+model CommunityReport {
+  id                String       @id @default(uuid())
+  reportId          String?
+  userId            String?
+  authorName        String       @default("Citizen Reporter")
+  hazardType        String       @default("WATERLOGGING")
+  severity          String       @default("MEDIUM")
+  waterDepthCm      Float?
+  description       String
+  latitude          Float
+  longitude         Float
+  locationName      String
+  upvotes           Int          @default(0)
+  downvotes         Int          @default(0)
+  isResolved        Boolean      @default(false)
+  deletedAt         DateTime?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  parentReport      FloodReport? @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  user              User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([latitude, longitude])
-  @@index([condition])
-  @@index([severity])
-  @@index([updatedAt])
+  @@index([reportId])
+  @@index([isResolved])
+  @@index([deletedAt])
 }
 
+// 14. RouteRequest
 model RouteRequest {
   id            String        @id @default(uuid())
   userId        String?
@@ -227,15 +379,20 @@ model RouteRequest {
   avoidFlooded  Boolean       @default(true)
   avoidHighRisk Boolean       @default(true)
   preferSafer   Boolean       @default(true)
+  vehicleType   String        @default("CAR")
+  deletedAt     DateTime?
   createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
   user          User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
   results       RouteResult[]
 
   @@index([userId])
   @@index([createdAt])
+  @@index([deletedAt])
 }
 
+// 15. RouteResult
 model RouteResult {
   id                 String       @id @default(uuid())
   requestId          String
@@ -251,53 +408,68 @@ model RouteResult {
   riskReasonsJson    String
   geometryJson       String
   stepsJson          String?
+  co2EmissionsKg     Float?
   isRecommended      Boolean      @default(false)
+  deletedAt          DateTime?
   createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
 
   request            RouteRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
 
   @@index([requestId])
   @@index([overallRisk])
+  @@index([deletedAt])
 }
 
+// 16. EmergencyResource
 model EmergencyResource {
-  id            String   @id @default(uuid())
-  name          String
-  category      String
-  address       String
-  city          String?
-  state         String?
-  phone         String?
-  latitude      Float
-  longitude     Float
-  isOpen        Boolean  @default(true)
-  notes         String?
-  isDemo        Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id              String    @id @default(uuid())
+  name            String
+  category        String
+  address         String
+  city            String?
+  state           String?
+  phone           String?
+  latitude        Float
+  longitude       Float
+  isOpen          Boolean   @default(true)
+  capacity        Int?
+  availableBeds   Int?
+  contactPerson   String?
+  notes           String?
+  isDemo          Boolean   @default(false)
+  deletedAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   @@index([latitude, longitude])
   @@index([category])
   @@index([city])
+  @@index([deletedAt])
 }
 
+// 17. Notification
 model Notification {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   userId    String
   title     String
   message   String
   type      String
-  isRead    Boolean  @default(false)
+  isRead    Boolean   @default(false)
   linkUrl   String?
-  createdAt DateTime @default(now())
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([isRead])
   @@index([createdAt])
+  @@index([deletedAt])
 }
 
+// 18. AuditLog
 model AuditLog {
   id        String   @id @default(uuid())
   adminId   String?
@@ -306,6 +478,7 @@ model AuditLog {
   entityId  String
   details   String?
   ipAddress String?
+  userAgent String?
   timestamp DateTime @default(now())
 
   admin     User?    @relation(fields: [adminId], references: [id], onDelete: SetNull)
@@ -314,4 +487,26 @@ model AuditLog {
   @@index([action])
   @@index([entity])
   @@index([timestamp])
+}
+
+// 19. AIAnalysis
+model AIAnalysis {
+  id                    String      @id @default(uuid())
+  reportId              String      @unique
+  floodDetected         Boolean
+  estimatedSeverity     String
+  roadVisibility        String
+  vehicleAccessibility   String
+  confidence            Int
+  waterCoveragePercent  Float?
+  dominantColor         String?
+  explanation           String
+  disclaimer            String      @default("AI-assisted estimate. Not an official disaster determination.")
+  latencyMs             Int?
+  analyzedAt            DateTime    @default(now())
+
+  report                FloodReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@index([estimatedSeverity])
+  @@index([floodDetected])
 }

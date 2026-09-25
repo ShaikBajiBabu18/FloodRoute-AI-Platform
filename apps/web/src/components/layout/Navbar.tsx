@@ -35,6 +35,10 @@ export const Navbar: React.FC = () => {
     { label: 'Safe Routes', path: '/route-planner', icon: Compass },
     { label: 'Weather', path: '/weather', icon: CloudRain },
     { label: 'Flood Intel', path: '/flood-intelligence', icon: Waves },
+    { label: 'Rivers', path: '/rivers', icon: Waves },
+    { label: 'Districts', path: '/districts', icon: Radio },
+    { label: 'India Overview', path: '/national-overview', icon: MapPin },
+    { label: 'IoT & Drones', path: '/iot-architecture', icon: Radio },
     { label: 'Alerts', path: '/disaster-alerts', icon: Bell },
     { label: 'Emergency', path: '/emergency-resources', icon: HeartHandshake },
   ];

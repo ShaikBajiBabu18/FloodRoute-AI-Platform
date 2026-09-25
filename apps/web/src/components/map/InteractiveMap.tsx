@@ -24,8 +24,11 @@ import {
   LocationSearchResult,
   MAP_LEGEND_COLORS,
   INDIA_MAP_BOUNDS,
+  predictFloodRisk,
 } from '@floodroute/shared';
 import { api } from '../../services/api';
+import { ExplainableAiCard } from '../common/ExplainableAiCard';
+import { ShelterRecommendationCard } from '../common/ShelterRecommendationCard';
 
 interface InteractiveMapProps {
   center?: [number, number]; // [lng, lat]
@@ -39,6 +42,10 @@ interface InteractiveMapProps {
   selectedMarker?: any;
   className?: string;
   interactiveSelect?: boolean;
+  showHeatmap?: boolean;
+  heatmapOpacity?: number;
+  timelineHour?: number;
+  onEntitySelect?: (entity: { type: string; data: any } | null) => void;
 }
 
 export const InteractiveMap: React.FC<InteractiveMapProps> = ({
@@ -52,6 +59,10 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   onLocationSelect,
   className = 'w-full h-full min-h-[500px]',
   interactiveSelect = false,
+  showHeatmap = false,
+  heatmapOpacity = 0.7,
+  timelineHour = 12,
+  onEntitySelect,
 }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
@@ -81,6 +92,11 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
 
   // Active Selected Marker Details Drawer
   const [selectedEntity, setSelectedEntity] = useState<{ type: string; data: any } | null>(null);
+
+  const handleSelectEntity = (entity: { type: string; data: any } | null) => {
+    setSelectedEntity(entity);
+    if (onEntitySelect) onEntitySelect(entity);
+  };
 
   // Initialize Map
   useEffect(() => {
@@ -201,6 +217,90 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     }
   }, [routeGeometry]);
 
+  // Update Flood Risk Heatmap Layer
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    const sourceId = 'flood-heatmap-source';
+    const layerId = 'flood-heatmap-layer';
+
+    const updateHeatmap = () => {
+      if (!map.isStyleLoaded()) return;
+
+      if (map.getLayer(layerId)) map.removeLayer(layerId);
+      if (map.getSource(sourceId)) map.removeSource(sourceId);
+
+      if (showHeatmap && reports.length > 0) {
+        const features = reports.map((r) => {
+          let weight = 0.4;
+          if (r.severity === 'CRITICAL') weight = 1.0;
+          else if (r.severity === 'HIGH') weight = 0.75;
+          else if (r.severity === 'MEDIUM') weight = 0.5;
+
+          return {
+            type: 'Feature',
+            properties: { weight },
+            geometry: {
+              type: 'Point',
+              coordinates: [r.longitude, r.latitude],
+            },
+          };
+        });
+
+        map.addSource(sourceId, {
+          type: 'geojson',
+          data: {
+            type: 'FeatureCollection',
+            features: features as any,
+          },
+        });
+
+        map.addLayer({
+          id: layerId,
+          type: 'heatmap',
+          source: sourceId,
+          maxzoom: 16,
+          paint: {
+            'heatmap-weight': ['get', 'weight'],
+            'heatmap-intensity': [
+              'interpolate',
+              ['linear'],
+              ['zoom'],
+              0, 1,
+              9, 3,
+            ],
+            'heatmap-color': [
+              'interpolate',
+              ['linear'],
+              ['heatmap-density'],
+              0, 'rgba(0, 0, 255, 0)',
+              0.2, 'rgba(6, 182, 212, 0.4)',
+              0.4, 'rgba(34, 197, 94, 0.6)',
+              0.6, 'rgba(245, 158, 11, 0.8)',
+              0.8, 'rgba(249, 115, 22, 0.9)',
+              1, 'rgba(239, 68, 68, 1)',
+            ],
+            'heatmap-radius': [
+              'interpolate',
+              ['linear'],
+              ['zoom'],
+              0, 4,
+              9, 35,
+            ],
+            'heatmap-opacity': Math.max(0.05, Math.min(1.0, heatmapOpacity)),
+          },
+        });
+      }
+    };
+
+    if (map.isStyleLoaded()) {
+      updateHeatmap();
+    } else {
+      map.once('load', updateHeatmap);
+    }
+  }, [reports, showHeatmap, heatmapOpacity]);
+
   // Render & Update Markers
   useEffect(() => {
     const map = mapRef.current;
@@ -227,7 +327,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         `;
 
         el.onclick = () => {
-          setSelectedEntity({ type: 'FLOOD_REPORT', data: report });
+          handleSelectEntity({ type: 'FLOOD_REPORT', data: report });
         };
 
         const marker = new maplibregl.Marker({ element: el })
@@ -250,7 +350,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         `;
 
         el.onclick = () => {
-          setSelectedEntity({ type: 'OFFICIAL_ALERT', data: alert });
+          handleSelectEntity({ type: 'OFFICIAL_ALERT', data: alert });
         };
 
         const marker = new maplibregl.Marker({ element: el })
@@ -278,7 +378,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         `;
 
         el.onclick = () => {
-          setSelectedEntity({ type: 'ROAD_CONDITION', data: road });
+          handleSelectEntity({ type: 'ROAD_CONDITION', data: road });
         };
 
         const marker = new maplibregl.Marker({ element: el })
@@ -320,7 +420,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         `;
 
         el.onclick = () => {
-          setSelectedEntity({ type: 'RESOURCE', data: res });
+          handleSelectEntity({ type: 'RESOURCE', data: res });
         };
 
         const marker = new maplibregl.Marker({ element: el })
@@ -624,14 +724,14 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
 
       {/* Slide-in Detail Drawer for Clicked Marker */}
       {selectedEntity && (
-        <div className="absolute bottom-4 right-4 z-30 w-80 sm:w-96 bg-navy-900/95 backdrop-blur-lg border border-slate-700 rounded-2xl p-5 shadow-2xl animate-fadeIn">
-          <div className="flex items-start justify-between mb-3">
-            <span className="px-2 py-0.5 rounded text-[10px] font-bold font-mono tracking-wider uppercase bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+        <div className="absolute bottom-4 right-4 z-30 w-80 sm:w-[440px] max-h-[85vh] overflow-y-auto bg-navy-900/95 backdrop-blur-xl border border-slate-700/80 rounded-2xl p-5 shadow-2xl animate-fadeIn space-y-4">
+          <div className="flex items-start justify-between">
+            <span className="px-2.5 py-0.5 rounded text-[10px] font-bold font-mono tracking-wider uppercase bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
               {selectedEntity.type.replace('_', ' ')}
             </span>
             <button
-              onClick={() => setSelectedEntity(null)}
-              className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800"
+              onClick={() => handleSelectEntity(null)}
+              className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
@@ -640,8 +740,20 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           {/* FLOOD REPORT DETAIL */}
           {selectedEntity.type === 'FLOOD_REPORT' && (() => {
             const r: FloodReportItem = selectedEntity.data;
+            const pred = predictFloodRisk({
+              currentRainfallMm: r.severity === 'CRITICAL' ? 68 : r.severity === 'HIGH' ? 42 : 18,
+              forecastRainfallMm: r.severity === 'CRITICAL' ? 120 : r.severity === 'HIGH' ? 75 : 30,
+              historicalRainfallMm: 45,
+              elevationM: r.severity === 'CRITICAL' ? 4.2 : r.severity === 'HIGH' ? 8.5 : 18.0,
+              riverProximityKm: r.severity === 'CRITICAL' ? 0.4 : r.severity === 'HIGH' ? 1.2 : 3.5,
+              drainageDensityIndex: r.severity === 'CRITICAL' ? 0.2 : 0.45,
+              communityReportsCount: 14,
+              activeRoadClosuresCount: 3,
+              officialWarningsCount: 2,
+            });
+
             return (
-              <div className="space-y-3 text-xs">
+              <div className="space-y-4 text-xs">
                 <div>
                   <h4 className="text-sm font-bold text-white">{r.locationName}</h4>
                   <div className="text-[11px] font-mono text-cyan-400">{r.reportCode}</div>
@@ -691,6 +803,17 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
                     <p className="text-[10px] text-slate-400 pt-1 italic">{r.aiAnalysis.disclaimer}</p>
                   </div>
                 )}
+
+                {/* Explainable AI Flood Prediction Embedded Card */}
+                <div className="pt-2 border-t border-slate-800 space-y-3">
+                  <ExplainableAiCard
+                    prediction={pred}
+                    locationTitle={r.locationName}
+                  />
+                  <ShelterRecommendationCard
+                    currentRiskScore={pred.floodProbability}
+                  />
+                </div>
               </div>
             );
           })()}

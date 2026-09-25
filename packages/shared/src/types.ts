@@ -251,3 +251,152 @@ export interface RoadConditionItem {
   updatedAt: string;
   isDemo?: boolean;
 }
+
+// ==========================================
+// 1. AI Flood Prediction Engine Types
+// ==========================================
+export type PredictiveRiskLevel = 'LOW' | 'MODERATE' | 'HIGH' | 'SEVERE' | 'CRITICAL';
+
+export interface PredictiveInput {
+  currentRainfallMm: number;
+  forecastRainfallMm: number;
+  historicalRainfallMm?: number;
+  elevationM: number;
+  riverProximityKm: number;
+  drainageDensityIndex: number; // 0 (poor/blocked) to 1 (optimal)
+  communityReportsCount: number;
+  activeRoadClosuresCount: number;
+  soilSaturationIndex?: number; // 0 to 1 (placeholder architecture)
+  officialWarningsCount: number;
+  locationName?: string;
+  latitude?: number;
+  longitude?: number;
+}
+
+export interface ExplainableFactorContribution {
+  name: string;
+  contributionPercent: number; // e.g. 35
+  description: string;
+  isElevated: boolean;
+  category: 'METEOROLOGICAL' | 'HYDROLOGICAL' | 'TOPOGRAPHICAL' | 'COMMUNITY' | 'INFRASTRUCTURE';
+}
+
+export interface PredictiveOutput {
+  floodProbability: number; // 0 - 100%
+  confidence: number; // 0 - 100%
+  riskLevel: PredictiveRiskLevel;
+  explanation: string;
+  affectedRadius: number; // in km
+  timestamp: string;
+  label: 'AI FLOOD PREDICTION';
+  disclaimer: string;
+  factors: ExplainableFactorContribution[];
+  accessibility: VehicleAccessibilityResult;
+}
+
+// ==========================================
+// 2. Road Accessibility Model Types
+// ==========================================
+export type VehicleAccessibilityCategory =
+  | 'WALKABLE'
+  | 'BIKE_ONLY'
+  | 'CAR_DIFFICULT'
+  | 'SUV_RECOMMENDED'
+  | 'IMPASSABLE';
+
+export interface VehicleAccessibilityResult {
+  category: VehicleAccessibilityCategory;
+  categoryLabel: string;
+  iconName: string;
+  estimatedWaterDepthCm: number;
+  explanation: string;
+  recommendedAction: string;
+}
+
+// ==========================================
+// 3. AI Chat Assistant (FloodRoute Copilot)
+// ==========================================
+export interface CopilotMessage {
+  id: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp: string;
+  suggestedActions?: {
+    label: string;
+    action: string;
+    params?: any;
+  }[];
+  sources?: string[];
+}
+
+// ==========================================
+// 4. River Monitoring Dashboard Types
+// ==========================================
+export interface RiverStation {
+  id: string;
+  riverName: string;
+  station: string;
+  state: string;
+  district: string;
+  currentLevelM: number;
+  warningLevelM: number;
+  dangerLevelM: number;
+  hflLevelM: number; // Highest Flood Level
+  trend: 'RISING' | 'STEADY' | 'FALLING';
+  status: 'NORMAL' | 'WARNING' | 'DANGER';
+  dischargeCusecs: number;
+  latitude: number;
+  longitude: number;
+  lastUpdated: string;
+}
+
+// ==========================================
+// 5. District Command Telemetry Types
+// ==========================================
+export interface DistrictTelemetry {
+  districtName: string;
+  state: string;
+  riskScore: number;
+  riskLevel: PredictiveRiskLevel;
+  weather: {
+    tempC: number;
+    rainfallMm: number;
+    condition: string;
+  };
+  reportsCount: number;
+  roadClosuresCount: number;
+  alertsCount: number;
+  resourcesCount: number;
+  populationAtRisk: number;
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
+}
+
+// ==========================================
+// 6. Gamification & Community Badges
+// ==========================================
+export interface ContributionBadge {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  tier: 'BRONZE' | 'SILVER' | 'GOLD' | 'SENTINEL';
+  unlockedAt?: string;
+}
+
+export interface LeaderboardEntry {
+  rank: number;
+  name: string;
+  district: string;
+  reportsSubmitted: number;
+  reportsVerified: number;
+  points: number;
+  badge: string;
+}
+
+// ==========================================
+// 7. Multilingual Support
+// ==========================================
+export type LanguageLocale = 'en' | 'ta' | 'te' | 'hi' | 'kn';

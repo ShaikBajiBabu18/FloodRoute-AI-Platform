@@ -103,4 +103,10 @@ export const adminApi = {
     const res = await apiClient.post('/resources', data);
     return res.data;
   },
+
+  // Deep System Telemetry & Diagnostic Health
+  getDeepHealth: async () => {
+    const res = await apiClient.get('/system/health-deep');
+    return res.data;
+  },
 };

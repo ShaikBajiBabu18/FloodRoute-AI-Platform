@@ -48,7 +48,10 @@ import {
   Sliders,
   Hospital,
   Flame,
-  LifeBuoy
+  LifeBuoy,
+  Play,
+  Pause,
+  RotateCcw,
 } from 'lucide-react';
 
 export const LiveMapPage: React.FC = () => {
@@ -77,6 +80,15 @@ export const LiveMapPage: React.FC = () => {
   const [baseLayer, setBaseLayer] = useState<'dark' | 'satellite' | 'streets'>('dark');
   const [measuringMode, setMeasuringMode] = useState(false);
   const [measuredDistance, setMeasuredDistance] = useState<number | null>(null);
+
+  // Heatmap State
+  const [showHeatmap, setShowHeatmap] = useState(true);
+  const [heatmapOpacity, setHeatmapOpacity] = useState(0.75);
+
+  // 24-Hour Timeline Replay Simulation State
+  const [timelineHour, setTimelineHour] = useState(14); // 14:00 (2:00 PM peak)
+  const [isPlayingTimeline, setIsPlayingTimeline] = useState(false);
+  const [timelineSpeed, setTimelineSpeed] = useState<1 | 2 | 5>(1);
 
   // Layer Toggles
   const [visibleLayers, setVisibleLayers] = useState({
@@ -109,6 +121,40 @@ export const LiveMapPage: React.FC = () => {
       : [INDIA_MAP_BOUNDS.centerLon, INDIA_MAP_BOUNDS.centerLat]
   );
   const [currentZoom, setCurrentZoom] = useState(hasQueryCoords ? 13 : INDIA_MAP_BOUNDS.defaultZoom);
+
+  // Dynamic Timeline calculations
+  const simulatedRainfall = Math.round(
+    timelineHour < 5
+      ? 8 + timelineHour * 2
+      : timelineHour < 11
+      ? 18 + (timelineHour - 5) * 6
+      : timelineHour < 16
+      ? 54 + (timelineHour - 11) * 8
+      : timelineHour < 20
+      ? 70 - (timelineHour - 16) * 10
+      : 30 - (timelineHour - 20) * 4
+  );
+  const simulatedRiskScore = Math.min(96, Math.max(15, Math.round(18 + simulatedRainfall * 0.92)));
+
+  const formatHour = (hour: number) => {
+    const whole = Math.floor(hour);
+    const minutes = hour % 1 === 0.5 ? '30' : '00';
+    const period = whole >= 12 && whole < 24 ? 'PM' : 'AM';
+    const displayHour = whole === 0 ? 12 : whole > 12 ? whole - 12 : whole;
+    return `${String(displayHour).padStart(2, '0')}:${minutes} ${period}`;
+  };
+
+  // Timeline loop
+  useEffect(() => {
+    if (!isPlayingTimeline) return;
+    const interval = setInterval(() => {
+      setTimelineHour((h) => {
+        const next = h + 0.5 * timelineSpeed;
+        return next > 24 ? 0 : Math.round(next * 10) / 10;
+      });
+    }, 600);
+    return () => clearInterval(interval);
+  }, [isPlayingTimeline, timelineSpeed]);
 
   // Live weather for the current region
   const [liveWeather, setLiveWeather] = useState({
@@ -362,6 +408,9 @@ export const LiveMapPage: React.FC = () => {
             alerts={visibleLayers.alerts ? alerts : []}
             roads={visibleLayers.roads ? roads : []}
             resources={visibleLayers.hospitals || visibleLayers.shelters ? resources : []}
+            showHeatmap={showHeatmap}
+            heatmapOpacity={heatmapOpacity}
+            timelineHour={timelineHour}
             className="w-full h-full"
           />
         </div>
@@ -455,6 +504,44 @@ export const LiveMapPage: React.FC = () => {
                         </span>
                       </label>
                     ))}
+
+                    {/* Heatmap Overlay & Opacity Slider */}
+                    <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2 mt-3">
+                      <div className="flex items-center justify-between">
+                        <label className="flex items-center gap-2 cursor-pointer text-xs">
+                          <input
+                            type="checkbox"
+                            checked={showHeatmap}
+                            onChange={(e) => setShowHeatmap(e.target.checked)}
+                            className="w-3.5 h-3.5 rounded text-cyan-500 focus:ring-0 bg-slate-800 border-slate-700"
+                          />
+                          <span className="text-white font-semibold flex items-center gap-1.5">
+                            <Flame className="w-3.5 h-3.5 text-rose-400" />
+                            Flood Inundation Heatmap
+                          </span>
+                        </label>
+                        <span className="text-[10px] font-mono text-cyan-400 font-bold">
+                          {Math.round(heatmapOpacity * 100)}%
+                        </span>
+                      </div>
+                      {showHeatmap && (
+                        <div className="space-y-1 pt-1">
+                          <div className="flex justify-between text-[10px] text-slate-400 font-mono">
+                            <span>Density Opacity</span>
+                            <span>{heatmapOpacity.toFixed(2)}</span>
+                          </div>
+                          <input
+                            type="range"
+                            min="0.1"
+                            max="1.0"
+                            step="0.05"
+                            value={heatmapOpacity}
+                            onChange={(e) => setHeatmapOpacity(parseFloat(e.target.value))}
+                            className="w-full accent-cyan-400 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
 
@@ -861,6 +948,91 @@ export const LiveMapPage: React.FC = () => {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+
+        {/* ==================================================== */}
+        {/* 24-HOUR TIMELINE REPLAY CONTROL BAR (Bottom Center) */}
+        {/* ==================================================== */}
+        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-20 w-[92%] sm:w-[540px]">
+          <div className="glass-card-elevated rounded-2xl border border-cyan-500/30 p-3 bg-[#020617]/90 backdrop-blur-xl shadow-2xl space-y-2">
+            <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2">
+                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 font-mono text-[10px] font-bold border border-cyan-500/20">
+                  <Activity className="w-3 h-3 animate-pulse" />
+                  24H DISASTER PROGRESSION REPLAY
+                </span>
+                <span className="font-heading font-extrabold text-white text-xs">
+                  {formatHour(timelineHour)}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <span className="text-[11px] font-mono text-sky-400 flex items-center gap-1">
+                  <CloudRain className="w-3 h-3" />
+                  {simulatedRainfall} mm/h
+                </span>
+                <span className="text-[11px] font-mono text-rose-400 flex items-center gap-1">
+                  <Waves className="w-3 h-3" />
+                  Risk {simulatedRiskScore}/100
+                </span>
+              </div>
+            </div>
+
+            {/* Slider & Controls */}
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setIsPlayingTimeline(!isPlayingTimeline)}
+                className={`p-1.5 rounded-xl transition-all shadow-md ${
+                  isPlayingTimeline
+                    ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                    : 'bg-cyan-500 text-slate-950 hover:bg-cyan-400 font-bold'
+                }`}
+                title={isPlayingTimeline ? 'Pause Timeline' : 'Play Timeline Progression'}
+              >
+                {isPlayingTimeline ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 fill-current" />}
+              </button>
+
+              <input
+                type="range"
+                min="0"
+                max="24"
+                step="0.5"
+                value={timelineHour}
+                onChange={(e) => setTimelineHour(parseFloat(e.target.value))}
+                className="flex-1 accent-cyan-400 h-2 bg-slate-800 rounded-lg cursor-pointer"
+              />
+
+              {/* Speed Buttons */}
+              <div className="flex items-center gap-1 bg-slate-950 p-0.5 rounded-lg border border-slate-800 text-[10px] font-mono font-bold">
+                {([1, 2, 5] as const).map((spd) => (
+                  <button
+                    key={spd}
+                    onClick={() => setTimelineSpeed(spd)}
+                    className={`px-1.5 py-0.5 rounded transition-colors ${
+                      timelineSpeed === spd ? 'bg-cyan-500 text-slate-950' : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    {spd}x
+                  </button>
+                ))}
+              </div>
+
+              {/* Reset to Live Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsPlayingTimeline(false);
+                  setTimelineHour(14);
+                  showToast('info', 'Timeline Synced', 'Replay reset to current peak hour (14:00).');
+                }}
+                className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800"
+                title="Reset to Live"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         </div>
       </div>

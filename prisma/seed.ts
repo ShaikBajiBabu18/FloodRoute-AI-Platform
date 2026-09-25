@@ -8,6 +8,7 @@ async function main() {
 
   // Clean existing records if any
   try {
+    await prisma.communityReport.deleteMany();
     await prisma.aIAnalysis.deleteMany();
     await prisma.floodImage.deleteMany();
     await prisma.floodReport.deleteMany();
@@ -15,18 +16,56 @@ async function main() {
     await prisma.disasterAlert.deleteMany();
     await prisma.weatherAlert.deleteMany();
     await prisma.weatherRecord.deleteMany();
+    await prisma.weatherCache.deleteMany();
+    await prisma.location.deleteMany();
     await prisma.emergencyResource.deleteMany();
     await prisma.savedLocation.deleteMany();
     await prisma.notification.deleteMany();
     await prisma.auditLog.deleteMany();
     await prisma.routeResult.deleteMany();
     await prisma.routeRequest.deleteMany();
+    await prisma.session.deleteMany();
+    await prisma.admin.deleteMany();
+    await prisma.role.deleteMany();
     await prisma.user.deleteMany();
   } catch (err) {
     console.log('Cleanup notice:', err);
   }
 
-  // 1. Seed Users
+  // 1. Seed Roles
+  const superAdminRole = await prisma.role.create({
+    data: {
+      name: 'SUPER_ADMIN',
+      description: 'National Super Admin with full system oversight, role management, and emergency broadcast privileges.',
+      permissionsJson: JSON.stringify(['*']),
+    },
+  });
+
+  const adminRole = await prisma.role.create({
+    data: {
+      name: 'ADMIN',
+      description: 'Disaster management command officer with alert dispatch and incident approval authority.',
+      permissionsJson: JSON.stringify(['reports:manage', 'alerts:manage', 'roads:manage', 'resources:manage', 'audit:read']),
+    },
+  });
+
+  const moderatorRole = await prisma.role.create({
+    data: {
+      name: 'MODERATOR',
+      description: 'Field verifier and triage moderator for community flood submissions.',
+      permissionsJson: JSON.stringify(['reports:verify', 'reports:reject', 'reports:resolve', 'roads:update']),
+    },
+  });
+
+  const citizenRole = await prisma.role.create({
+    data: {
+      name: 'CITIZEN',
+      description: 'Public citizen user with route navigation and incident reporting capabilities.',
+      permissionsJson: JSON.stringify(['reports:create', 'routes:calculate', 'locations:manage', 'notifications:read']),
+    },
+  });
+
+  // 2. Seed Users
   const adminPasswordHash = await bcrypt.hash('ChangeMe123!', 10);
   const userPasswordHash = await bcrypt.hash('Citizen123!', 10);
 
@@ -38,6 +77,7 @@ async function main() {
       role: 'SUPER_ADMIN',
       phone: '+91-9876543210',
       isActive: true,
+      emailVerified: true,
       lastActive: new Date(),
     },
   });
@@ -47,9 +87,10 @@ async function main() {
       email: 'analyst@floodroute.ai',
       name: 'Priya Sharma (Disaster Risk Analyst)',
       passwordHash: adminPasswordHash,
-      role: 'ANALYST',
+      role: 'ADMIN',
       phone: '+91-9876543211',
       isActive: true,
+      emailVerified: true,
       lastActive: new Date(),
     },
   });
@@ -62,11 +103,47 @@ async function main() {
       role: 'CITIZEN',
       phone: '+91-9876543212',
       isActive: true,
+      emailVerified: true,
       lastActive: new Date(),
     },
   });
 
-  console.log('Seeded users: admin@floodroute.ai, analyst@floodroute.ai, citizen@floodroute.ai');
+  // 3. Seed Admin Profiles
+  await prisma.admin.create({
+    data: {
+      userId: superAdmin.id,
+      roleId: superAdminRole.id,
+      department: 'NDRF National Command Directorate',
+      badgeNumber: 'NDRF-NAT-001',
+      clearanceLevel: 4,
+      notes: 'Authorized for national disaster declaration and inter-agency dispatch.',
+    },
+  });
+
+  await prisma.admin.create({
+    data: {
+      userId: analyst.id,
+      roleId: adminRole.id,
+      department: 'Tamil Nadu State Disaster Management Authority (TNSDMA)',
+      badgeNumber: 'TNSDMA-OPS-104',
+      clearanceLevel: 3,
+      notes: 'Disaster GIS coordinator for Greater Chennai Corporation area.',
+    },
+  });
+
+  // 4. Seed Active Session for testing
+  await prisma.session.create({
+    data: {
+      userId: citizen.id,
+      token: 'demo-citizen-session-token-2026',
+      refreshToken: 'demo-citizen-refresh-token-2026',
+      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) FloodRouteClient/2.0',
+      ipAddress: '103.211.23.45',
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+    },
+  });
+
+  console.log('Seeded roles, users, admin profiles, and active sessions.');
 
   // 2. Saved Locations for Citizen
   await prisma.savedLocation.createMany({
@@ -603,6 +680,162 @@ async function main() {
         entityId: 'alert-001',
         details: 'Issued official platform alert for Chembarambakkam discharge.',
         ipAddress: '192.168.1.101',
+      },
+    ],
+  });
+
+  // 9. Seed Catalog Locations (Disaster Vulnerability Zones)
+  await prisma.location.createMany({
+    data: [
+      {
+        name: 'Velachery Basin',
+        district: 'Chennai',
+        state: 'Tamil Nadu',
+        latitude: 12.9805,
+        longitude: 80.2195,
+        elevationM: 4.2,
+        population: 280000,
+        isCriticalZone: true,
+        riskLevel: 'CRITICAL',
+      },
+      {
+        name: 'Kurla West Mithi River Zone',
+        district: 'Mumbai Suburban',
+        state: 'Maharashtra',
+        latitude: 19.0688,
+        longitude: 72.8785,
+        elevationM: 3.1,
+        population: 410000,
+        isCriticalZone: true,
+        riskLevel: 'HIGH',
+      },
+      {
+        name: 'Silk Board & Bellandur Lake Spillway',
+        district: 'Bengaluru Urban',
+        state: 'Karnataka',
+        latitude: 12.9176,
+        longitude: 77.6234,
+        elevationM: 890.0,
+        population: 320000,
+        isCriticalZone: true,
+        riskLevel: 'HIGH',
+      },
+      {
+        name: 'Guwahati Brahmaputra Floodplain',
+        district: 'Kamrup Metropolitan',
+        state: 'Assam',
+        latitude: 26.1850,
+        longitude: 91.7450,
+        elevationM: 52.0,
+        population: 1100000,
+        isCriticalZone: true,
+        riskLevel: 'CRITICAL',
+      },
+      {
+        name: 'Kadamkuan & Rajendra Nagar',
+        district: 'Patna',
+        state: 'Bihar',
+        latitude: 25.6025,
+        longitude: 85.1585,
+        elevationM: 53.0,
+        population: 390000,
+        isCriticalZone: true,
+        riskLevel: 'HIGH',
+      },
+      {
+        name: 'Aluva Periyar River Basin',
+        district: 'Ernakulam',
+        state: 'Kerala',
+        latitude: 10.1076,
+        longitude: 76.3516,
+        elevationM: 8.5,
+        population: 175000,
+        isCriticalZone: true,
+        riskLevel: 'MODERATE',
+      },
+    ],
+  });
+
+  // 10. Seed Weather Cache
+  await prisma.weatherCache.createMany({
+    data: [
+      {
+        cacheKey: 'loc_12.9805_80.2195',
+        latitude: 12.9805,
+        longitude: 80.2195,
+        locationName: 'Velachery, Chennai',
+        temperatureC: 28.4,
+        feelsLikeC: 32.1,
+        humidityPercent: 88,
+        windSpeedKmh: 24.5,
+        rainfallMm: 38.2,
+        condition: 'HEAVY_RAIN',
+        weatherRisk: 'CRITICAL',
+        source: 'Open-Meteo & IMD Integrated API',
+        payloadJson: JSON.stringify({
+          temp: 28.4,
+          rain_mm: 38.2,
+          wind_kmh: 24.5,
+          condition: 'Heavy Monsoon Downpour',
+          satellite_band: 'INSAT-3DR TIR1',
+        }),
+        expiresAt: new Date(Date.now() + 60 * 60 * 1000), // 1 hour TTL
+      },
+      {
+        cacheKey: 'loc_19.0688_72.8785',
+        latitude: 19.0688,
+        longitude: 72.8785,
+        locationName: 'Kurla West, Mumbai',
+        temperatureC: 27.2,
+        feelsLikeC: 31.0,
+        humidityPercent: 85,
+        windSpeedKmh: 28.0,
+        rainfallMm: 22.4,
+        condition: 'MODERATE_RAIN',
+        weatherRisk: 'HIGH',
+        source: 'Open-Meteo & IMD Integrated API',
+        payloadJson: JSON.stringify({
+          temp: 27.2,
+          rain_mm: 22.4,
+          wind_kmh: 28.0,
+          condition: 'Monsoon Showers',
+        }),
+        expiresAt: new Date(Date.now() + 60 * 60 * 1000),
+      },
+    ],
+  });
+
+  // 11. Seed Community Reports
+  await prisma.communityReport.createMany({
+    data: [
+      {
+        reportId: report1.id,
+        userId: citizen.id,
+        authorName: 'Rohan Verma (Resident)',
+        hazardType: 'FLOODED_ROAD',
+        severity: 'CRITICAL',
+        waterDepthCm: 65,
+        description: 'Water has crossed the center median near Velachery MRTS. BMTC/MTC buses diverting.',
+        latitude: 12.9808,
+        longitude: 80.2198,
+        locationName: 'Velachery MRTS Intersection',
+        upvotes: 24,
+        downvotes: 1,
+        isResolved: false,
+      },
+      {
+        reportId: report2.id,
+        authorName: 'Anonymous Commuter',
+        hazardType: 'WATERLOGGING',
+        severity: 'HIGH',
+        waterDepthCm: 35,
+        description: 'Drain overflowing onto service road. Motorcyclists please avoid.',
+        latitude: 12.9180,
+        longitude: 77.6239,
+        locationName: 'Silk Board Service Road',
+        upvotes: 12,
+        downvotes: 0,
+        isResolved: false,
       },
     ],
   });

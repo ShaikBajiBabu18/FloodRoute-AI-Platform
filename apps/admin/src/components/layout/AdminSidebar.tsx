@@ -12,6 +12,7 @@ import {
   Radio,
   ExternalLink,
   BarChart3,
+  Activity,
 } from 'lucide-react';
 
 export const AdminSidebar: React.FC = () => {
@@ -23,6 +24,7 @@ export const AdminSidebar: React.FC = () => {
     { label: 'Disaster Alerts', path: '/alerts', icon: BellRing },
     { label: 'AI Analytics', path: '/ai-analytics', icon: Sparkles },
     { label: 'Analytics Hub', path: '/analytics', icon: BarChart3 },
+    { label: 'System Health', path: '/system-health', icon: Activity },
     { label: 'User Directory', path: '/users', icon: Users },
     { label: 'Audit Logs', path: '/audit-logs', icon: ScrollText },
   ];

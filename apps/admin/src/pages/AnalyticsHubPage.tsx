@@ -94,20 +94,88 @@ export const AnalyticsHubPage: React.FC = () => {
     { name: 'Low / Passable', value: 95, color: '#22C55E' },
   ];
 
+  const getFormattedTimestamp = () => {
+    const now = new Date();
+    return now.toISOString().replace(/[:.]/g, '-');
+  };
+
   // Export CSV Handler
   const handleExportCSV = () => {
+    const timestamp = getFormattedTimestamp();
     const headers = ['Date', 'Total Reports', 'Verified Reports', 'Closed Roads', 'Rainfall (mm)'];
     const rows = nationalTrends.map((t) => [t.date, t.reports, t.verified, t.closedRoads, t.rainfall]);
     const csvContent =
       'data:text/csv;charset=utf-8,' +
-      [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+      [`# FloodRoute AI Disaster Analytics Export - Timestamp: ${new Date().toISOString()}`,
+       headers.join(','), 
+       ...rows.map((e) => e.join(','))].join('\n');
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `FloodRoute_AI_Analytics_${Date.now()}.csv`);
+    link.setAttribute('download', `FloodRoute_AI_Analytics_${timestamp}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  // Export Excel (.xls) Handler
+  const handleExportExcel = () => {
+    const timestamp = getFormattedTimestamp();
+    const headers = ['Date', 'Total Reports', 'Verified Reports', 'Closed Roads', 'Rainfall (mm)'];
+    const rows = nationalTrends.map((t) => [t.date, t.reports, t.verified, t.closedRoads, t.rainfall]);
+    const excelContent = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+      <head><meta charset="utf-8" /></head>
+      <body>
+        <h3>FloodRoute AI National Disaster Analytics Report</h3>
+        <p><strong>Generated At:</strong> ${new Date().toISOString()}</p>
+        <table border="1">
+          <thead>
+            <tr style="background-color: #0284c7; color: white;">
+              ${headers.map((h) => `<th>${h}</th>`).join('')}
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map((row) => `<tr>${row.map((cell) => `<td>${cell}</td>`).join('')}</tr>`).join('')}
+          </tbody>
+        </table>
+      </body>
+      </html>
+    `;
+    const blob = new Blob([excelContent], { type: 'application/vnd.ms-excel' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `FloodRoute_AI_Analytics_${timestamp}.xls`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  // Export JSON Summary Handler
+  const handleExportJSON = () => {
+    const timestamp = getFormattedTimestamp();
+    const payload = {
+      platform: 'FloodRoute AI Executive Command Center',
+      exportType: 'Disaster Risk & Operations Summary',
+      generatedAt: new Date().toISOString(),
+      timestampUnix: Date.now(),
+      nationalTrends,
+      stateComparisonData,
+      correlationData,
+      userGrowthData,
+      severityBreakdown,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `FloodRoute_AI_Analytics_Summary_${timestamp}.json`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   // Export PDF (Window Print layout)
@@ -132,21 +200,39 @@ export const AnalyticsHubPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Export Buttons */}
-        <div className="flex items-center gap-2.5">
+        {/* 4 Timestamped Export Buttons: CSV, Excel, JSON, PDF */}
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={handleExportCSV}
-            className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 text-xs font-semibold flex items-center gap-2 transition-all shadow-md"
+            className="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-md"
+            title="Export CSV data with timestamp"
           >
             <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
-            <span>Export CSV</span>
+            <span>CSV</span>
+          </button>
+          <button
+            onClick={handleExportExcel}
+            className="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-md"
+            title="Export Microsoft Excel spreadsheet (.xls) with timestamp"
+          >
+            <FileText className="w-4 h-4 text-sky-400" />
+            <span>Excel (.xls)</span>
+          </button>
+          <button
+            onClick={handleExportJSON}
+            className="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-md"
+            title="Export JSON Telemetry Summary with timestamp"
+          >
+            <CheckCircle2 className="w-4 h-4 text-amber-400" />
+            <span>JSON</span>
           </button>
           <button
             onClick={handleExportPDF}
             className="px-4 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold text-xs shadow-lg shadow-sky-500/20 transition-all flex items-center gap-2"
+            title="Export Printable PDF Report"
           >
             <Download className="w-4 h-4" />
-            <span>Export PDF Report</span>
+            <span>Export PDF</span>
           </button>
         </div>
       </div>

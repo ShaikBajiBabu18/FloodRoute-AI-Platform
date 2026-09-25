@@ -5,33 +5,47 @@ import path from 'path';
 import { errorHandler } from './middleware/errorHandler';
 import { apiRateLimiter } from './middleware/rateLimiter';
 
-import authRoutes from './routes/authRoutes';
-import userRoutes from './routes/userRoutes';
-import weatherRoutes from './routes/weatherRoutes';
-import floodRoutes from './routes/floodRoutes';
-import reportRoutes from './routes/reportRoutes';
-import routeRoutes from './routes/routeRoutes';
-import alertRoutes from './routes/alertRoutes';
+// Modular Feature Modules (Service / Repository Architecture)
+import authRoutes from './auth/auth.routes';
+import userRoutes from './users/users.routes';
+import weatherRoutes from './weather/weather.routes';
+import floodRoutes from './flood/flood.routes';
+import routingRoutes from './routing/routing.routes';
+import reportsRoutes from './reports/reports.routes';
+import alertsRoutes from './alerts/alerts.routes';
+import aiRoutes from './ai/ai.routes';
+import analyticsRoutes from './analytics/analytics.routes';
+import docsRoutes from './docs/docs.routes';
+import copilotRoutes from './copilot/copilot.routes';
+import districtsRoutes from './districts/districts.routes';
+import riversRoutes from './rivers/rivers.routes';
+import systemRoutes from './system/system.routes';
+
+// Operational & Infrastructure Modules
 import resourceRoutes from './routes/resourceRoutes';
 import roadRoutes from './routes/roadRoutes';
 import adminRoutes from './routes/adminRoutes';
-import aiRoutes from './routes/aiRoutes';
 import healthRoutes from './routes/healthRoutes';
 
 export const app = express();
 
 // Security Middleware
-app.use(helmet({
-  crossOriginResourcePolicy: { policy: 'cross-origin' },
-}));
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    contentSecurityPolicy: false, // Allows inline Swagger UI bundle
+  })
+);
 
 // CORS Configuration
-app.use(cors({
-  origin: true, // Allow frontend dev servers and mobile browsers
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+app.use(
+  cors({
+    origin: true, // Allow frontend dev servers and mobile browsers
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+);
 
 // Body Parsers
 app.use(express.json({ limit: '15mb' }));
@@ -43,22 +57,33 @@ app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')));
 // General API Rate Limiting
 app.use('/api', apiRateLimiter);
 
-// Health check endpoints (prompt requirement: GET /health and GET /api/health)
+// Health check endpoints (GET /health and GET /api/health)
 app.use('/health', healthRoutes);
 app.use('/api/health', healthRoutes);
 
-// Application API Routes
+// OpenAPI 3.0 Documentation & Swagger UI
+app.use('/api', docsRoutes);
+app.use('/docs', docsRoutes);
+
+// Modular Application API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/weather', weatherRoutes);
 app.use('/api/flood', floodRoutes);
-app.use('/api/reports', reportRoutes);
-app.use('/api/routes', routeRoutes);
-app.use('/api/alerts', alertRoutes);
+app.use('/api/routes', routingRoutes);
+app.use('/api/reports', reportsRoutes);
+app.use('/api/alerts', alertsRoutes);
+app.use('/api/ai', aiRoutes);
+app.use('/api/admin/analytics', analyticsRoutes);
+app.use('/api/copilot', copilotRoutes);
+app.use('/api/districts', districtsRoutes);
+app.use('/api/rivers', riversRoutes);
+app.use('/api/system', systemRoutes);
+
+// Supporting Infrastructure Routes
 app.use('/api/resources', resourceRoutes);
 app.use('/api/roads', roadRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/ai', aiRoutes);
 
 // Catch-all 404 handler for undefined API routes
 app.use('/api/*', (req, res) => {

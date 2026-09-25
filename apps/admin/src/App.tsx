@@ -16,6 +16,7 @@ import { AiAnalyticsPage } from './pages/AiAnalyticsPage';
 import { AnalyticsHubPage } from './pages/AnalyticsHubPage';
 import { UserManagementPage } from './pages/UserManagementPage';
 import { AuditLogsPage } from './pages/AuditLogsPage';
+import { SystemHealthPage } from './pages/SystemHealthPage';
 import { AdminLoginPage } from './pages/AdminLoginPage';
 
 const queryClient = new QueryClient();
@@ -68,6 +69,7 @@ export const App: React.FC = () => {
                       <Route path="/alerts" element={<AlertsManagerPage />} />
                       <Route path="/ai-analytics" element={<AiAnalyticsPage />} />
                       <Route path="/analytics" element={<AnalyticsHubPage />} />
+                      <Route path="/system-health" element={<SystemHealthPage />} />
                       <Route path="/users" element={<UserManagementPage />} />
                       <Route path="/audit-logs" element={<AuditLogsPage />} />
                     </Routes>
