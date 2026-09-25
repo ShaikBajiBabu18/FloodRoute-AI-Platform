@@ -1,9 +1,14 @@
 # Dependencies
 node_modules/
-*/node_modules/
-*/*/node_modules/
+*node_modules/
+*/*node_modules/
 .pnp
 .pnp.js
+
+# Directory junction aliases
+/web
+/admin
+/ai-service
 
 # Python
 __pycache__/
