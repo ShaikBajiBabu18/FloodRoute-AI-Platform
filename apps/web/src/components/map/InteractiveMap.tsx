@@ -38,6 +38,7 @@ interface InteractiveMapProps {
   roads?: RoadConditionItem[];
   resources?: EmergencyResourceItem[];
   routeGeometry?: any;
+  routeColor?: string;
   onLocationSelect?: (loc: { lat: number; lng: number; name: string }) => void;
   selectedMarker?: any;
   className?: string;
@@ -56,6 +57,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   roads = [],
   resources = [],
   routeGeometry = null,
+  routeColor = '#06B6D4',
   onLocationSelect,
   className = 'w-full h-full min-h-[500px]',
   interactiveSelect = false,
@@ -192,9 +194,9 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
             'line-cap': 'round',
           },
           paint: {
-            'line-color': '#06B6D4',
+            'line-color': routeColor,
             'line-width': 6,
-            'line-opacity': 0.85,
+            'line-opacity': 0.9,
           },
         });
 

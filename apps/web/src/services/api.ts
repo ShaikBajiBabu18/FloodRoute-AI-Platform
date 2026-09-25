@@ -98,8 +98,11 @@ export const api = {
     preferSafer?: boolean;
     preferFastest?: boolean;
   }): Promise<{ routes: RouteOption[]; meta: any }> => {
-    const res = await apiClient.post('/routes', payload);
-    return res.data;
+    const res = await apiClient.post('/routes/calculate', payload);
+    return {
+      routes: res.data.options || res.data.routes || [],
+      meta: res.data.summary || {},
+    };
   },
 
   // Alerts

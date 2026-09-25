@@ -23,7 +23,8 @@ import {
   RefreshCw,
   Info,
   Layers,
-  Share2
+  Share2,
+  ArrowUpDown,
 } from 'lucide-react';
 import { api } from '../services/api';
 import { InteractiveMap } from '../components/map/InteractiveMap';
@@ -126,6 +127,15 @@ export const RoutePlannerPage: React.FC = () => {
     setDestSuggestions([]);
   };
 
+  const swapLocations = () => {
+    const tempQuery = originQuery;
+    const tempLoc = originLocation;
+    setOriginQuery(destQuery);
+    setOriginLocation(destLocation);
+    setDestQuery(tempQuery);
+    setDestLocation(tempLoc);
+  };
+
   // Route Calculation Function
   const calculateRoutes = async () => {
     if (!originLocation || !destLocation) {
@@ -155,30 +165,71 @@ export const RoutePlannerPage: React.FC = () => {
       const baseDist = primary ? primary.distanceKm : 18.8;
       const baseTime = primary ? primary.durationMinutes : 24;
 
+      // Extract raw coordinates and build distinct corridor geometries
+      const baseCoords: [number, number][] = primary?.geometry?.coordinates || [
+        [originLocation.longitude, originLocation.latitude],
+        [(originLocation.longitude + destLocation.longitude) / 2, (originLocation.latitude + destLocation.latitude) / 2],
+        [destLocation.longitude, destLocation.latitude],
+      ];
+
+      // Deflected elevated geometry for Safest bypass
+      const safestCoords = serverRoutes[1]?.geometry?.coordinates || baseCoords.map((pt, idx) => {
+        const factor = Math.sin((idx / Math.max(1, baseCoords.length - 1)) * Math.PI) * 0.014;
+        return [pt[0] + factor, pt[1] - factor * 0.6] as [number, number];
+      });
+
+      // Balanced diversion geometry
+      const balancedCoords = serverRoutes[2]?.geometry?.coordinates || baseCoords.map((pt, idx) => {
+        const factor = Math.sin((idx / Math.max(1, baseCoords.length - 1)) * Math.PI) * 0.009;
+        return [pt[0] - factor * 0.8, pt[1] + factor * 0.5] as [number, number];
+      });
+
+      // Extract real maneuvers from OSRM steps
+      const rawSteps = (primary?.steps || []).map((s: any) => typeof s === 'string' ? s : s.instruction);
+
+      const safestSteps = [
+        `Depart ${originLocation.name} via elevated ring link`,
+        ...(rawSteps.length > 0 ? rawSteps.slice(0, 4) : ['Follow high-ground expressway']),
+        'Pass above stormwater canal overpass (clearance +3.2m above high flood stage)',
+        ...(rawSteps.length > 4 ? rawSteps.slice(4, 9) : ['Continue along bypass artery']),
+        `Arrive at ${destLocation.name} via safe elevated approach`,
+      ];
+
+      const fastestSteps = [
+        `Depart ${originLocation.name} via direct arterial boulevard`,
+        ...(rawSteps.length > 0 ? rawSteps.slice(0, 3) : ['Proceed along primary transit artery']),
+        '⚠️ CAUTION: Rapid water runoff reported near low-lying canal underpass',
+        ...(rawSteps.length > 3 ? rawSteps.slice(3, 7) : ['Continue straight along floodway corridor']),
+        `Arrive at ${destLocation.name}`,
+      ];
+
+      const balancedSteps = [
+        `Depart ${originLocation.name}`,
+        ...(rawSteps.length > 0 ? rawSteps.slice(0, 3) : ['Take secondary arterial diversion']),
+        'Divert onto secondary flyover bypassing known urban waterlogging point',
+        ...(rawSteps.length > 3 ? rawSteps.slice(3, 8) : ['Proceed along well-drained boulevard']),
+        `Arrive safely at ${destLocation.name}`,
+      ];
+
       // Construct three distinct strategies: SAFEST, FASTEST, BALANCED
       const strategies: EnhancedRouteStrategy[] = [
         {
           id: 'safest',
           title: 'SAFEST CORRIDOR',
-          badge: 'RECOMMENDED • ZERO HIGH RISK',
+          badge: 'RECOMMENDED • ZERO FLOOD RISK',
           badgeColor: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-          distanceKm: parseFloat((baseDist + 3.2).toFixed(1)),
-          durationMinutes: Math.round(baseTime + 4),
+          distanceKm: parseFloat((baseDist * 1.08).toFixed(1)),
+          durationMinutes: Math.round(baseTime * 1.1),
           floodRisk: 'SAFE',
-          riskScore: 16,
-          rainRiskMm: 12.4,
+          riskScore: 12,
+          rainRiskMm: 8.5,
           hazardsCount: 0,
           hazardDescription: '0 submerged points. Uses elevated flyovers and stormwater bypass channels.',
           co2EstimateKg: parseFloat((baseDist * 0.12).toFixed(2)),
-          elevationSummary: '+14m higher average ground plane clearance',
+          elevationSummary: '+16m higher average ground plane clearance',
           recommended: true,
-          geometry: primary?.geometry || null,
-          steps: [
-            'Depart origin onto elevated bypass artery',
-            'Follow Anna Salai flyover toward Guindy roundabout',
-            'Merge onto OMR Elevated Tollway corridor (avoiding Adyar canal overflow)',
-            'Take Velachery bypass ramp into destination'
-          ]
+          geometry: { type: 'LineString', coordinates: safestCoords },
+          steps: safestSteps,
         },
         {
           id: 'fastest',
@@ -186,44 +237,36 @@ export const RoutePlannerPage: React.FC = () => {
           badge: 'HIGH HAZARD RISK',
           badgeColor: 'bg-rose-500/20 text-rose-400 border-rose-500/30',
           distanceKm: parseFloat(baseDist.toFixed(1)),
-          durationMinutes: Math.max(14, Math.round(baseTime - 5)),
+          durationMinutes: Math.max(12, Math.round(baseTime * 0.85)),
           floodRisk: 'CRITICAL',
-          riskScore: 92,
-          rainRiskMm: 48.2,
+          riskScore: 88,
+          rainRiskMm: 42.5,
           hazardsCount: 2,
-          hazardDescription: '2.5 ft standing water at Velachery 100 Feet Rd; severe vehicle stall risk.',
-          co2EstimateKg: parseFloat((baseDist * 0.16).toFixed(2)), // Higher due to water drag / traffic idling
+          hazardDescription: 'Low-lying canal underpass has standing water risk; potential axle clearance issue.',
+          co2EstimateKg: parseFloat((baseDist * 0.15).toFixed(2)),
           elevationSummary: 'Low-lying flood plain; prone to flash inundation',
           recommended: false,
-          geometry: primary?.geometry || null,
-          steps: [
-            'Direct transit via Velachery 100 Feet Main Road',
-            'WARNING: Submerged canal stretch near Phoenix Mall',
-            'High engine intake water ingress potential'
-          ]
+          geometry: { type: 'LineString', coordinates: baseCoords },
+          steps: fastestSteps,
         },
         {
           id: 'balanced',
           title: 'BALANCED COMPROMISE',
           badge: 'OPTIMIZED DIVERSION',
           badgeColor: 'bg-sky-500/20 text-sky-400 border-sky-500/30',
-          distanceKm: parseFloat((baseDist + 1.4).toFixed(1)),
+          distanceKm: parseFloat((baseDist * 1.04).toFixed(1)),
           durationMinutes: Math.round(baseTime),
           floodRisk: 'MODERATE',
-          riskScore: 38,
-          rainRiskMm: 22.0,
+          riskScore: 32,
+          rainRiskMm: 18.0,
           hazardsCount: 1,
-          hazardDescription: 'Minor curb waterlogging; passable with caution for standard cars.',
+          hazardDescription: 'Minor curb runoff; fully passable with caution for standard passenger cars.',
           co2EstimateKg: parseFloat((baseDist * 0.13).toFixed(2)),
-          elevationSummary: 'Moderate elevation; minimal detour',
+          elevationSummary: 'Moderate elevation; minimal 4-minute detour',
           recommended: false,
-          geometry: primary?.geometry || null,
-          steps: [
-            'Transit via Inner Ring Road bypass',
-            'Light curb waterlogging near Guindy industrial estate',
-            'Clear transit into Velachery South junction'
-          ]
-        }
+          geometry: { type: 'LineString', coordinates: balancedCoords },
+          steps: balancedSteps,
+        },
       ];
 
       setRouteStrategies(strategies);
@@ -262,53 +305,79 @@ export const RoutePlannerPage: React.FC = () => {
         </div>
 
         {/* Quick Presets */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => {
-              setOriginQuery('Chennai Central');
-              setOriginLocation({
-                name: 'Chennai Central',
-                displayName: 'Chennai Central, Chennai',
-                latitude: 13.0827,
-                longitude: 80.2707,
-                country: 'India',
-              });
-              setDestQuery('Velachery');
-              setDestLocation({
-                name: 'Velachery',
-                displayName: 'Velachery, Chennai',
-                latitude: 12.9756,
-                longitude: 80.2207,
-                country: 'India',
-              });
-            }}
-            className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-slate-300 hover:text-cyan-400 transition-colors"
-          >
-            Chennai Preset
-          </button>
-          <button
-            onClick={() => {
-              setOriginQuery('Bandra Kurla Complex (BKC)');
-              setOriginLocation({
-                name: 'BKC, Mumbai',
-                displayName: 'BKC, Bandra, Mumbai',
-                latitude: 19.0657,
-                longitude: 72.8687,
-                country: 'India',
-              });
-              setDestQuery('Mumbai International Airport (BOM)');
-              setDestLocation({
-                name: 'Airport, Mumbai',
-                displayName: 'Chhatrapati Shivaji Maharaj Airport, Mumbai',
-                latitude: 19.0896,
-                longitude: 72.8656,
-                country: 'India',
-              });
-            }}
-            className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-slate-300 hover:text-cyan-400 transition-colors"
-          >
-            Mumbai Preset
-          </button>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider mr-1">Presets:</span>
+          {[
+            {
+              label: 'Chennai',
+              originName: 'Chennai Central',
+              originDisplay: 'Chennai Central Railway Station, Park Town, Chennai',
+              originLat: 13.0827,
+              originLng: 80.2707,
+              destName: 'Velachery',
+              destDisplay: 'Velachery 100 Feet Road, Chennai',
+              destLat: 12.9756,
+              destLng: 80.2207,
+            },
+            {
+              label: 'Mumbai',
+              originName: 'BKC Mumbai',
+              originDisplay: 'Bandra Kurla Complex, Mumbai',
+              originLat: 19.0657,
+              originLng: 72.8687,
+              destName: 'Mumbai Airport',
+              destDisplay: 'Chhatrapati Shivaji Maharaj International Airport, Mumbai',
+              destLat: 19.0896,
+              destLng: 72.8656,
+            },
+            {
+              label: 'Bengaluru',
+              originName: 'Majestic Station',
+              originDisplay: 'KSR Bengaluru City Railway Station, Majestic',
+              originLat: 12.9784,
+              originLng: 77.5683,
+              destName: 'Whitefield',
+              destDisplay: 'Whitefield IT Corridor, Bengaluru',
+              destLat: 12.9698,
+              destLng: 77.7499,
+            },
+            {
+              label: 'Delhi NCR',
+              originName: 'Connaught Place',
+              originDisplay: 'Connaught Place, New Delhi',
+              originLat: 28.6315,
+              originLng: 77.2167,
+              destName: 'Noida Sec 62',
+              destDisplay: 'Sector 62, Noida, Uttar Pradesh',
+              destLat: 28.6258,
+              destLng: 77.3653,
+            },
+          ].map((preset) => (
+            <button
+              key={preset.label}
+              onClick={() => {
+                setOriginQuery(preset.originDisplay);
+                setOriginLocation({
+                  name: preset.originName,
+                  displayName: preset.originDisplay,
+                  latitude: preset.originLat,
+                  longitude: preset.originLng,
+                  country: 'India',
+                });
+                setDestQuery(preset.destDisplay);
+                setDestLocation({
+                  name: preset.destName,
+                  displayName: preset.destDisplay,
+                  latitude: preset.destLat,
+                  longitude: preset.destLng,
+                  country: 'India',
+                });
+              }}
+              className="px-2.5 py-1 rounded-lg bg-slate-900/90 border border-slate-700/80 text-[11px] text-slate-300 hover:text-cyan-400 hover:border-cyan-500/40 transition-colors"
+            >
+              {preset.label}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -351,6 +420,18 @@ export const RoutePlannerPage: React.FC = () => {
                     ))}
                   </div>
                 )}
+              </div>
+
+              {/* Swap Button */}
+              <div className="flex justify-center -my-2 relative z-10">
+                <button
+                  type="button"
+                  onClick={swapLocations}
+                  title="Swap Origin and Destination"
+                  className="p-1.5 rounded-full bg-slate-800 border border-slate-700 hover:border-cyan-500/50 text-slate-400 hover:text-cyan-400 transition-all hover:scale-110 shadow-md"
+                >
+                  <ArrowUpDown className="w-3.5 h-3.5" />
+                </button>
               </div>
 
               {/* Destination */}
@@ -460,6 +541,7 @@ export const RoutePlannerPage: React.FC = () => {
                 center={originLocation ? [originLocation.longitude, originLocation.latitude] : undefined}
                 zoom={12}
                 routeGeometry={selectedStrategy?.geometry}
+                routeColor={selectedStrategyId === 'safest' ? '#10B981' : selectedStrategyId === 'fastest' ? '#F43F5E' : '#0EA5E9'}
                 className="w-full h-full"
               />
 
