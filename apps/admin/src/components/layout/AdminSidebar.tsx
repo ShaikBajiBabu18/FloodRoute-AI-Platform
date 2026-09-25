@@ -11,6 +11,7 @@ import {
   ScrollText,
   Radio,
   ExternalLink,
+  BarChart3,
 } from 'lucide-react';
 
 export const AdminSidebar: React.FC = () => {
@@ -21,6 +22,7 @@ export const AdminSidebar: React.FC = () => {
     { label: 'Road Conditions', path: '/road-conditions', icon: Construction },
     { label: 'Disaster Alerts', path: '/alerts', icon: BellRing },
     { label: 'AI Analytics', path: '/ai-analytics', icon: Sparkles },
+    { label: 'Analytics Hub', path: '/analytics', icon: BarChart3 },
     { label: 'User Directory', path: '/users', icon: Users },
     { label: 'Audit Logs', path: '/audit-logs', icon: ScrollText },
   ];

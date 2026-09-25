@@ -13,6 +13,7 @@ import { FloodReportsTable } from './pages/FloodReportsTable';
 import { RoadConditionsPage } from './pages/RoadConditionsPage';
 import { AlertsManagerPage } from './pages/AlertsManagerPage';
 import { AiAnalyticsPage } from './pages/AiAnalyticsPage';
+import { AnalyticsHubPage } from './pages/AnalyticsHubPage';
 import { UserManagementPage } from './pages/UserManagementPage';
 import { AuditLogsPage } from './pages/AuditLogsPage';
 import { AdminLoginPage } from './pages/AdminLoginPage';
@@ -66,6 +67,7 @@ export const App: React.FC = () => {
                       <Route path="/road-conditions" element={<RoadConditionsPage />} />
                       <Route path="/alerts" element={<AlertsManagerPage />} />
                       <Route path="/ai-analytics" element={<AiAnalyticsPage />} />
+                      <Route path="/analytics" element={<AnalyticsHubPage />} />
                       <Route path="/users" element={<UserManagementPage />} />
                       <Route path="/audit-logs" element={<AuditLogsPage />} />
                     </Routes>
