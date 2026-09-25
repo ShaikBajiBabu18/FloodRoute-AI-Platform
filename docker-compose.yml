@@ -46,7 +46,7 @@ services:
       - DATABASE_URL=postgresql://postgres:postgrespassword@postgres:5432/floodroute?schema=public
       - JWT_SECRET=floodroute_jwt_secret_key_india_disaster_2026_secure
       - AI_SERVICE_URL=http://ai-service:8000
-      - CLIENT_URL=http://localhost:5173
+      - CLIENT_URL=http://localhost:8080
       - ADMIN_URL=http://localhost:5174
       - DEMO_MODE=true
     depends_on:
@@ -62,7 +62,7 @@ services:
     container_name: floodroute-web
     restart: always
     ports:
-      - "5173:80"
+      - "8080:80"
     depends_on:
       - server
 
