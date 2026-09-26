@@ -16,6 +16,7 @@ import {
   ChevronUp,
   ChevronDown,
   Navigation,
+  Sparkles,
 } from 'lucide-react';
 import { InteractiveMap } from '../components/map/InteractiveMap';
 import { api } from '../services/api';
@@ -26,21 +27,19 @@ import {
   LocationSearchResult,
 } from '@floodroute/shared';
 import { useToast } from '../context/ToastContext';
-import { OneClickJudgeDemo } from '../components/common/OneClickJudgeDemo';
+import { useDemo } from '../context/DemoContext';
 import { DataSourceBadge } from '../components/ui/DataSourceBadge';
 
 export const LiveMapPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const { isDemoMode, demoConfig, startDemo } = useDemo();
 
   // Search State
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
   const [suggestions, setSuggestions] = useState<LocationSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-
-  // Judge Demo Modal State
-  const [showJudgeDemo, setShowJudgeDemo] = useState(false);
 
   // Map Layer & Legend State
   const [showLegend, setShowLegend] = useState(true);
@@ -201,10 +200,34 @@ export const LiveMapPage: React.FC = () => {
     showToast('info', 'Compass Reset', 'Reset view to default orientation.');
   };
 
+  useEffect(() => {
+    if (isDemoMode) {
+      setMapCenter([demoConfig.location.longitude, demoConfig.location.latitude]);
+      setMapZoom(13);
+      setShowHeatmap(true);
+      setShowLegend(true);
+      setSelectedPlace({
+        name: `${demoConfig.location.name} (Demo Hub)`,
+        weather: `${demoConfig.weather.rainfallMmH} mm/h (${demoConfig.weather.condition})`,
+        temp: `${demoConfig.weather.tempC}°C`,
+        risk: 'High',
+        riskColor: 'text-orange-400 bg-orange-500/20 border-orange-500/40',
+        emergency: `${demoConfig.emergencyServices[0].name} (${demoConfig.emergencyServices[0].distance})`,
+        emergencyPhone: '112',
+      });
+      setBottomSheetOpen(true);
+    }
+  }, [isDemoMode, demoConfig]);
+
   return (
     <div className="relative w-full h-[calc(100vh-80px)] bg-[#020617] overflow-hidden">
-      {/* 8-Step Interactive Judge Demonstration Modal */}
-      <OneClickJudgeDemo isOpen={showJudgeDemo} onClose={() => setShowJudgeDemo(false)} />
+      {/* Presentation Mode Top Banner */}
+      {isDemoMode && (
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-30 px-4 py-1.5 rounded-full bg-amber-500/90 text-slate-950 font-extrabold text-xs flex items-center gap-2 shadow-2xl backdrop-blur-md border border-amber-300 animate-in fade-in">
+          <span className="w-2 h-2 rounded-full bg-slate-950 animate-ping" />
+          <span>MAP PRESENTATION MODE • Target: {demoConfig.location.name} (Elev: {demoConfig.location.elevationMsl}m MSL)</span>
+        </div>
+      )}
 
       {/* ==================================================== */}
       {/* 1. FULL SCREEN MAP                                   */}
@@ -284,10 +307,11 @@ export const LiveMapPage: React.FC = () => {
         {/* Action Buttons: Judge Demo & Heatmap */}
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setShowJudgeDemo(true)}
+            onClick={startDemo}
             className="h-14 px-4 rounded-2xl bg-gradient-to-r from-sky-500 via-cyan-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-extrabold text-xs sm:text-sm flex items-center gap-2 shadow-2xl shadow-sky-500/30 transition-all hover:scale-105 active:scale-95 whitespace-nowrap"
           >
-            <span>✨ Run Analysis (Judge Demo)</span>
+            <Sparkles className="w-4 h-4 text-yellow-300 animate-spin" />
+            <span>Start Demo Flow</span>
           </button>
 
           <button

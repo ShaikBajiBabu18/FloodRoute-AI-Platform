@@ -3,10 +3,12 @@ import { useSocket } from '../../context/SocketContext';
 import { useAccessibility } from '../../context/AccessibilityContext';
 import { useI18n } from '../../context/I18nContext';
 import { Wifi, WifiOff, RefreshCw, AlertTriangle, ShieldCheck, Cpu, Volume2, Sparkles, PhoneCall } from 'lucide-react';
+import { useDemo } from '../../context/DemoContext';
 
 export const LiveStatusBar: React.FC = () => {
   const { isConnected } = useSocket();
-  const { isOffline, queuedReports, setOpenSosModal, setOpenDemoModal, readAloud } = useAccessibility();
+  const { isOffline, queuedReports, setOpenSosModal, readAloud } = useAccessibility();
+  const { startDemo, isDemoMode } = useDemo();
   const { locale, setLocale, t } = useI18n();
 
   const [activeAlertCount, setActiveAlertCount] = useState<number>(3);
@@ -80,11 +82,11 @@ export const LiveStatusBar: React.FC = () => {
 
         {/* One-Click Hackathon Demo Mode */}
         <button
-          onClick={() => setOpenDemoModal(true)}
-          className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gradient-to-r from-sky-600 to-cyan-500 hover:from-sky-500 hover:to-cyan-400 text-white font-semibold shadow-md shadow-cyan-500/20 text-[11px] transition-all transform hover:scale-[1.02]"
+          onClick={startDemo}
+          className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-gradient-to-r from-sky-600 to-cyan-500 hover:from-sky-500 hover:to-cyan-400 text-white font-bold shadow-md shadow-cyan-500/25 text-[11px] transition-all transform hover:scale-[1.03] active:scale-[0.98]"
         >
           <Sparkles className="w-3.5 h-3.5 text-yellow-300 animate-spin" />
-          <span>Start AI Verse Demo</span>
+          <span>Start Demo</span>
         </button>
 
         {/* Emergency SOS Button */}

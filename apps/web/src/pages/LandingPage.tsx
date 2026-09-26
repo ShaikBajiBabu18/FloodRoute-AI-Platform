@@ -20,13 +20,13 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { useAccessibility } from '../context/AccessibilityContext';
+import { useDemo } from '../context/DemoContext';
 import { NationalCommandDashboard } from '../components/common/NationalCommandDashboard';
-import { OneClickJudgeDemo } from '../components/common/OneClickJudgeDemo';
 
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const [destinationQuery, setDestinationQuery] = useState('');
-  const [showJudgeDemo, setShowJudgeDemo] = useState(false);
+  const { startDemo } = useDemo();
   const { setOpenSosModal } = useAccessibility();
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -40,8 +40,6 @@ export const LandingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#020617] text-slate-100 flex flex-col justify-between">
-      {/* 8-Step Interactive Judge Demonstration Modal */}
-      <OneClickJudgeDemo isOpen={showJudgeDemo} onClose={() => setShowJudgeDemo(false)} />
 
       {/* Background Soft Glow */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -96,11 +94,11 @@ export const LandingPage: React.FC = () => {
           {/* Action Buttons: Judge Demo + Map + Route + SOS */}
           <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
             <button
-              onClick={() => setShowJudgeDemo(true)}
+              onClick={startDemo}
               className="w-full sm:w-auto h-14 sm:h-16 px-8 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-extrabold text-base sm:text-lg flex items-center justify-center gap-3 shadow-xl shadow-cyan-500/30 transition-all hover:scale-[1.03] active:scale-[0.98] ring-4 ring-cyan-500/20"
             >
               <Sparkles className="w-6 h-6 animate-spin" />
-              <span>Run Flood Risk Analysis</span>
+              <span>Start Demo (Run Flood Risk Analysis)</span>
             </button>
 
             <Link
@@ -133,7 +131,7 @@ export const LandingPage: React.FC = () => {
         {/* NATIONAL COMMAND DASHBOARD (REQUIREMENT 1)           */}
         {/* ==================================================== */}
         <section className="pt-2">
-          <NationalCommandDashboard onTriggerJudgeDemo={() => setShowJudgeDemo(true)} />
+          <NationalCommandDashboard onTriggerJudgeDemo={startDemo} />
         </section>
 
         {/* ==================================================== */}

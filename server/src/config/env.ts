@@ -22,5 +22,8 @@ export const ENV = {
   CWC_API_URL: process.env.CWC_API_URL || '',
   NDMA_API_URL: process.env.NDMA_API_URL || '',
   DEMO_MODE: process.env.DEMO_MODE !== 'false',
+  DEMO_LOCATION_NAME: process.env.DEMO_LOCATION_NAME || 'Velachery Basin, Chennai',
+  DEMO_LATITUDE: parseFloat(process.env.DEMO_LATITUDE || '12.9805'),
+  DEMO_LONGITUDE: parseFloat(process.env.DEMO_LONGITUDE || '80.2195'),
   ENABLE_AI_SERVICE: process.env.ENABLE_AI_SERVICE !== 'false',
 };

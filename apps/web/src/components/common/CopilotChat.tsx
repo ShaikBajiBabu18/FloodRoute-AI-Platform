@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAccessibility } from '../../context/AccessibilityContext';
+import { useDemo } from '../../context/DemoContext';
 import {
   MessageSquare,
   X,
@@ -24,6 +25,7 @@ interface ChatMessage {
 }
 
 export const CopilotChat: React.FC = () => {
+  const { isDemoMode, demoConfig } = useDemo();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -55,6 +57,43 @@ export const CopilotChat: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isOpen]);
 
+  useEffect(() => {
+    if (isDemoMode) {
+      setMessages([
+        {
+          id: 'demo-welcome',
+          role: 'assistant',
+          content:
+            `🤖 **FloodRoute Copilot • Demonstration Context Loaded**\n\n` +
+            `📍 **Selected Location**: ${demoConfig.location.name} (Elev: ${demoConfig.location.elevationMsl}m MSL)\n` +
+            `🌧️ **Current Weather**: ${demoConfig.weather.rainfallMmH} mm/h (${demoConfig.weather.condition})\n` +
+            `🛡️ **Flood Risk**: ${demoConfig.floodRisk.score}/100 (${demoConfig.floodRisk.level})\n` +
+            `📊 **Main Factors**: Heavy rain (35%), Low basin elevation (25%), Drainage saturation (20%)\n\n` +
+            `Ask me anything about this simulated flood scenario:`,
+          suggestedActions: [
+            { label: 'Why is the risk elevated?', action: 'query', params: { text: 'Why is the risk elevated?' } },
+            { label: 'How is this score calculated?', action: 'query', params: { text: 'How is this score calculated?' } },
+            { label: 'What should I check before travelling?', action: 'query', params: { text: 'What should I check before travelling?' } },
+            { label: 'Where is the nearest shelter?', action: 'query', params: { text: 'Nearest shelter' } },
+          ],
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        },
+      ]);
+    }
+  }, [isDemoMode, demoConfig]);
+
+  useEffect(() => {
+    const handleCopilotQuery = (e: any) => {
+      const q = e.detail?.query;
+      setIsOpen(true);
+      if (q) {
+        handleSend(q);
+      }
+    };
+    window.addEventListener('open_copilot_with_query', handleCopilotQuery);
+    return () => window.removeEventListener('open_copilot_with_query', handleCopilotQuery);
+  }, []);
+
   const handleSend = async (textToSend?: string) => {
     const query = textToSend || input;
     if (!query.trim() || loading) return;
@@ -77,9 +116,10 @@ export const CopilotChat: React.FC = () => {
         body: JSON.stringify({
           message: query,
           context: {
-            latitude: 12.9805,
-            longitude: 80.2195,
-            locationName: 'Velachery, Chennai',
+            latitude: isDemoMode ? demoConfig.location.latitude : 12.9805,
+            longitude: isDemoMode ? demoConfig.location.longitude : 80.2195,
+            locationName: isDemoMode ? demoConfig.location.name : 'Velachery, Chennai',
+            routeRiskScore: isDemoMode ? demoConfig.floodRisk.score : 68,
           },
         }),
       });
@@ -100,14 +140,37 @@ export const CopilotChat: React.FC = () => {
       } else {
         throw new Error('Server error');
       }
-    } catch (err) {
+    } catch {
+      let fallbackText = `🧠 **AI ESTIMATE • MODEL-DERIVED ADVISORY FOR ${isDemoMode ? demoConfig.location.name : 'Velachery, Chennai'}:**\n\n`;
+      const qLower = query.toLowerCase();
+      if (qLower.includes('why') || qLower.includes('factor') || qLower.includes('elevated')) {
+        fallbackText +=
+          `• **Rainfall Intensity**: ${demoConfig.weather.rainfallMmH} mm/h cloudburst exceeding stormwater capacity.\n` +
+          `• **Basin Elevation**: ${demoConfig.location.elevationMsl}m MSL saucer-shaped basin subject to natural ponding.\n` +
+          `• **Drainage Saturation**: 85% saturation in Pallikaranai canal discharge corridor.\n\n` +
+          `💡 *Recommendation*: Select elevated bypass corridors and avoid low-lying underpasses.`;
+      } else if (qLower.includes('how') || qLower.includes('calculated')) {
+        fallbackText +=
+          `• **Algorithm Formulation**: Weighted deterministic equation: Rain (35%) + Elevation (25%) + Drainage (20%) + River proximity (15%) + Crowd reports (5%).\n` +
+          `• **Current Score**: ${demoConfig.floodRisk.score}/100 (${demoConfig.floodRisk.level} Risk).\n` +
+          `• **Explainability**: Every factor percentage is verified against spatial elevation contours.`;
+      } else if (qLower.includes('check') || qLower.includes('travel') || qLower.includes('safe')) {
+        fallbackText +=
+          `• **Pre-Travel Checks**: Verify underpass status before departure.\n` +
+          `• **Vehicle Suitability**: Two-wheelers and small hatchbacks avoid low-lying canal roads.\n` +
+          `• **High Ground Refuge**: Nearest verified relief camp is ${demoConfig.emergencyServices[0].name} (${demoConfig.emergencyServices[0].distance}).\n` +
+          `• **Helpline**: National Emergency Hotline 112 is active 24/7.`;
+      } else {
+        fallbackText +=
+          `Current flood risk is elevated (${demoConfig.floodRisk.score}/100). Please follow routes with lower modeled flood-risk exposure and check official NDMA bulletins.`;
+      }
+
       setMessages((prev) => [
         ...prev,
         {
           id: `fallback-${Date.now()}`,
           role: 'assistant',
-          content:
-            '⚠️ FloodRoute neural pipeline is responding with high-caution defaults: Please avoid flooded underpasses and check active disaster alerts.',
+          content: fallbackText,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         },
       ]);

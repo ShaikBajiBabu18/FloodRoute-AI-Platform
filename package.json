@@ -13,6 +13,7 @@
     "dev": "concurrently -k -p \"[{name}]\" -n \"SERVER,WEB,ADMIN,AI\" -c \"blue.bold,green.bold,magenta.bold,yellow.bold\" \"npm run dev --workspace=server\" \"npm run dev --workspace=apps/web\" \"npm run dev --workspace=apps/admin\" \"python -m uvicorn app.main:app --app-dir apps/ai-service --port 8000 --reload\"",
     "dev:all": "concurrently -k -p \"[{name}]\" -n \"SERVER,WEB,ADMIN,AI\" -c \"blue.bold,green.bold,magenta.bold,yellow.bold\" \"npm run dev --workspace=server\" \"npm run dev --workspace=apps/web\" \"npm run dev --workspace=apps/admin\" \"python -m uvicorn app.main:app --app-dir apps/ai-service --port 8000 --reload\"",
     "build": "npm run build --workspace=@floodroute/shared && npm run build --workspace=server && npm run build --workspace=apps/web && npm run build --workspace=apps/admin",
+    "lint": "tsc --noEmit --project packages/shared/tsconfig.json && tsc --noEmit --project server/tsconfig.json && tsc --noEmit --project apps/web/tsconfig.json && tsc --noEmit --project apps/admin/tsconfig.json",
     "test": "npm run test --workspace=server",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
