@@ -17,12 +17,16 @@ import {
   ShieldCheck,
   Droplets,
   AlertTriangle,
+  Sparkles,
 } from 'lucide-react';
 import { useAccessibility } from '../context/AccessibilityContext';
+import { NationalCommandDashboard } from '../components/common/NationalCommandDashboard';
+import { OneClickJudgeDemo } from '../components/common/OneClickJudgeDemo';
 
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const [destinationQuery, setDestinationQuery] = useState('');
+  const [showJudgeDemo, setShowJudgeDemo] = useState(false);
   const { setOpenSosModal } = useAccessibility();
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -36,19 +40,22 @@ export const LandingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#020617] text-slate-100 flex flex-col justify-between">
+      {/* 8-Step Interactive Judge Demonstration Modal */}
+      <OneClickJudgeDemo isOpen={showJudgeDemo} onClose={() => setShowJudgeDemo(false)} />
+
       {/* Background Soft Glow */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[450px] bg-gradient-to-b from-sky-500/15 via-blue-600/10 to-transparent blur-[120px] rounded-full" />
       </div>
 
-      <main className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 w-full space-y-16">
+      <main className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 w-full space-y-16">
         {/* ==================================================== */}
         {/* HERO SECTION                                         */}
         {/* ==================================================== */}
         <section className="text-center space-y-6">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sky-500/15 border border-sky-500/30 text-sky-300 text-xs sm:text-sm font-semibold">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
-            <span>Active India Flood Safety Network</span>
+            <span>Active India Flood Safety Network • Live Telemetry</span>
           </div>
 
           <h1 className="font-heading text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-tight">
@@ -86,14 +93,22 @@ export const LandingPage: React.FC = () => {
             </button>
           </form>
 
-          {/* Large Primary Action Buttons (56px+ minimum height) */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+          {/* Action Buttons: Judge Demo + Map + Route + SOS */}
+          <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
+            <button
+              onClick={() => setShowJudgeDemo(true)}
+              className="w-full sm:w-auto h-14 sm:h-16 px-8 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-extrabold text-base sm:text-lg flex items-center justify-center gap-3 shadow-xl shadow-cyan-500/30 transition-all hover:scale-[1.03] active:scale-[0.98] ring-4 ring-cyan-500/20"
+            >
+              <Sparkles className="w-6 h-6 animate-spin" />
+              <span>Run Flood Risk Analysis</span>
+            </button>
+
             <Link
               to="/live-map"
-              className="w-full sm:w-auto h-14 sm:h-16 px-8 rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-extrabold text-base sm:text-lg flex items-center justify-center gap-3 shadow-xl shadow-sky-500/25 transition-all hover:scale-[1.02] active:scale-[0.98]"
+              className="w-full sm:w-auto h-14 sm:h-16 px-8 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-base sm:text-lg border-2 border-slate-700 hover:border-sky-500/60 flex items-center justify-center gap-3 shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
               <span className="text-xl">🗺</span>
-              <span>Open Map</span>
+              <span>Open Live Map</span>
             </Link>
 
             <Link
@@ -112,6 +127,13 @@ export const LandingPage: React.FC = () => {
               <span>Emergency Help</span>
             </button>
           </div>
+        </section>
+
+        {/* ==================================================== */}
+        {/* NATIONAL COMMAND DASHBOARD (REQUIREMENT 1)           */}
+        {/* ==================================================== */}
+        <section className="pt-2">
+          <NationalCommandDashboard onTriggerJudgeDemo={() => setShowJudgeDemo(true)} />
         </section>
 
         {/* ==================================================== */}

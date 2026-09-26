@@ -126,7 +126,37 @@ python -m uvicorn app.main:app --app-dir apps/ai-service --port 8000 --reload
 
 ---
 
-## 5. Docker Deployment
+## 5. Live Hackathon Judge Demo Flow
+
+FloodRoute AI provides a **One-Click Autonomous Demonstration Pipeline** engineered specifically for hackathon evaluation:
+
+1. **One-Click Analysis Trigger**: On the landing page (`http://localhost:8080`) or live map, click **"Run Flood Risk Analysis"**.
+2. **8-Step Automated Evaluation Sequence**:
+   - **Step 1: Geocoded Location & Terrain Boundary**: Identifies vulnerable low-lying hubs (e.g. Velachery Basin, Chennai or Kurla West, Mumbai) with elevation MSL.
+   - **Step 2: Weather Ingestion**: Connects to Open-Meteo & IMD radar telemetry to measure precipitation rate ($mm/h$) and cloudburst saturation.
+   - **Step 3: Multi-Variable Inundation Modeling**: Computes drainage threshold, river surge proximity, and hydraulic run-off vectors.
+   - **Step 4: AI Flood Risk Score (0–100)**: Normalizes hydraulic factors into a clear risk level (`LOW`, `MODERATE`, `HIGH`, `SEVERE`).
+   - **Step 5: Explainable Factor Breakdown**: Transparently explains the percentage contribution of rainfall, elevation, drainage, and crowdsourced reports.
+   - **Step 6: Official Disaster Warning Correlation**: Intersects active NDMA Red/Orange alerts and CWC reservoir advisories.
+   - **Step 7: Emergency Services Dispatch**: Dispatches nearest high-elevation relief shelter and 112 emergency helpline.
+   - **Step 8: Flood-Aware Safe Route Offer**: Calculates bypass corridor with **"Lower Modeled Flood-Risk Exposure"** circumventing waterlogged underpasses.
+
+3. **Context-Aware AI Copilot Assistant**:
+   - Click the bottom-right Copilot widget to ask:
+     - *"Why is the flood risk high?"*
+     - *"Is it safe to travel right now?"*
+     - *"Explain my route risk factors"*
+     - *"Find the nearest emergency shelter"*
+   - The Copilot correlates live database records, Open-Meteo radar, and multi-variable equations with deterministic fallback.
+
+4. **Data Provenance & Safety Labeling Standards**:
+   - Strictly labeled: `AI ESTIMATE • AI FLOOD PREDICTION`
+   - Safe route corridors labeled: `Lower Modeled Flood-Risk Exposure` (never guarantees 100% absence of hazard; always complies with local traffic police directives).
+   - Clear distinction between `LIVE DATA` (Open-Meteo, OSRM, Geocoding) and `[DEMO DATA - SEEDED FOR EVALUATION]` in Admin command decks.
+
+---
+
+## 6. Docker Deployment
 
 Launch the complete full-stack platform with a single command:
 ```bash
@@ -141,7 +171,7 @@ docker compose exec server npx ts-node prisma/seed.ts
 
 ---
 
-## 6. Cloud Production Deployment
+## 7. Cloud Production Deployment
 
 Detailed platform-specific guides are located in [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md):
 - **Frontend & Admin**: Deploy on **Vercel** via [`vercel.json`](vercel.json).
@@ -150,7 +180,7 @@ Detailed platform-specific guides are located in [`docs/DEPLOYMENT.md`](docs/DEP
 
 ---
 
-## 7. Automated Test Suite
+## 8. Automated Test Suite
 
 FloodRoute AI contains comprehensive unit and integration test coverage:
 ```bash
@@ -165,7 +195,7 @@ npm test --workspace=server
 
 ---
 
-## 8. Credentials & Testing Accounts
+## 9. Credentials & Testing Accounts
 
 - **Admin Account**: `admin@floodroute.ai` / `Admin@123456`
 - **Moderator Account**: `moderator@floodroute.ai` / `Moderator@123456`
@@ -173,7 +203,7 @@ npm test --workspace=server
 
 ---
 
-## 9. License & Disclaimers
+## 10. License & Disclaimers
 
 ### Data Provenance & Legal Disclaimer
 FloodRoute AI displays data provenance badges: `[OFFICIAL DATA]`, `[COMMUNITY DATA]`, `[WEATHER-DERIVED RISK]`, and `[AI FLOOD PREDICTION]`. AI-generated predictions are advisory indicators and must never be interpreted as statutory government evacuation declarations.

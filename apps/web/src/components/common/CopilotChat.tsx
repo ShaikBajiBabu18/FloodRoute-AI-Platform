@@ -32,10 +32,11 @@ export const CopilotChat: React.FC = () => {
       content:
         '👋 Welcome to **FloodRoute Copilot**! I am your AI emergency transit assistant for India.\n\nAsk me about road accessibility, rainfall predictions, route risk scores, or emergency shelters.',
       suggestedActions: [
+        { label: 'Why is the flood risk high?', action: 'query', params: { text: 'Why is the flood risk high?' } },
         { label: 'Is it safe to travel?', action: 'query', params: { text: 'Is it safe to travel?' } },
         { label: 'Explain my route risk', action: 'query', params: { text: 'Explain my route risk' } },
         { label: 'Nearest shelter', action: 'query', params: { text: 'Nearest shelter' } },
-        { label: 'Rain forecast', action: 'query', params: { text: 'Rain forecast' } },
+        { label: 'Active warnings', action: 'query', params: { text: 'Active disaster warnings' } },
       ],
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     },

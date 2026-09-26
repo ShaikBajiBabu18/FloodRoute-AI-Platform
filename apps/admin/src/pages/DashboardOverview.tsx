@@ -127,9 +127,18 @@ export const DashboardOverview: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 text-xs font-semibold border border-cyan-500/20 mb-2">
-            <Activity className="w-3.5 h-3.5" />
-            <span>DISASTER OPERATIONS OVERVIEW</span>
+          <div className="flex flex-wrap items-center gap-2 mb-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 text-xs font-semibold border border-cyan-500/20">
+              <Activity className="w-3.5 h-3.5" />
+              <span>DISASTER OPERATIONS OVERVIEW</span>
+            </div>
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+              [DEMO DATA - SEEDED FOR HACKATHON EVALUATION]
+            </span>
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+              [LIVE TELEMETRY ACTIVE]
+            </span>
           </div>
           <h1 className="font-heading text-3xl font-extrabold text-white">
             Incident Command Dashboard

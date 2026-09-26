@@ -26,6 +26,8 @@ import {
   LocationSearchResult,
 } from '@floodroute/shared';
 import { useToast } from '../context/ToastContext';
+import { OneClickJudgeDemo } from '../components/common/OneClickJudgeDemo';
+import { DataSourceBadge } from '../components/ui/DataSourceBadge';
 
 export const LiveMapPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -36,6 +38,13 @@ export const LiveMapPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
   const [suggestions, setSuggestions] = useState<LocationSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+
+  // Judge Demo Modal State
+  const [showJudgeDemo, setShowJudgeDemo] = useState(false);
+
+  // Map Layer & Legend State
+  const [showLegend, setShowLegend] = useState(true);
+  const [showHeatmap, setShowHeatmap] = useState(false);
 
   // Map Center & Zoom
   const [mapCenter, setMapCenter] = useState<[number, number]>([80.2707, 13.0827]); // Default Chennai
@@ -194,6 +203,9 @@ export const LiveMapPage: React.FC = () => {
 
   return (
     <div className="relative w-full h-[calc(100vh-80px)] bg-[#020617] overflow-hidden">
+      {/* 8-Step Interactive Judge Demonstration Modal */}
+      <OneClickJudgeDemo isOpen={showJudgeDemo} onClose={() => setShowJudgeDemo(false)} />
+
       {/* ==================================================== */}
       {/* 1. FULL SCREEN MAP                                   */}
       {/* ==================================================== */}
@@ -203,6 +215,7 @@ export const LiveMapPage: React.FC = () => {
         reports={reports}
         alerts={alerts}
         resources={resources}
+        showHeatmap={showHeatmap}
         onEntitySelect={(entity) => {
           if (entity) {
             setActiveMarker(entity);
@@ -224,10 +237,11 @@ export const LiveMapPage: React.FC = () => {
       />
 
       {/* ==================================================== */}
-      {/* 2. SEARCH AT TOP                                     */}
+      {/* 2. SEARCH & TOP CONTROL BAR                          */}
       {/* ==================================================== */}
-      <div className="absolute top-4 left-4 right-4 sm:left-6 sm:w-96 z-30">
-        <div className="relative">
+      <div className="absolute top-4 left-4 right-4 sm:left-6 sm:right-auto z-30 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        {/* Search Input */}
+        <div className="relative w-full sm:w-80">
           <div className="flex items-center h-14 rounded-2xl bg-slate-900/95 backdrop-blur-xl border-2 border-sky-500/40 shadow-2xl px-4 gap-3">
             <Search className="w-5 h-5 text-sky-400 shrink-0" />
             <input
@@ -266,7 +280,107 @@ export const LiveMapPage: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* Action Buttons: Judge Demo & Heatmap */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowJudgeDemo(true)}
+            className="h-14 px-4 rounded-2xl bg-gradient-to-r from-sky-500 via-cyan-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-extrabold text-xs sm:text-sm flex items-center gap-2 shadow-2xl shadow-sky-500/30 transition-all hover:scale-105 active:scale-95 whitespace-nowrap"
+          >
+            <span>✨ Run Analysis (Judge Demo)</span>
+          </button>
+
+          <button
+            onClick={() => setShowHeatmap(!showHeatmap)}
+            className={`h-14 px-3.5 rounded-2xl backdrop-blur-xl border-2 font-bold text-xs flex items-center gap-1.5 shadow-2xl transition-all ${
+              showHeatmap
+                ? 'bg-rose-500/20 text-rose-300 border-rose-500/50'
+                : 'bg-slate-900/95 text-slate-300 border-slate-700 hover:border-sky-500 hover:text-white'
+            }`}
+            title="Toggle Inundation Heatmap"
+          >
+            <span>🔥 {showHeatmap ? 'Heatmap On' : 'Heatmap'}</span>
+          </button>
+
+          <button
+            onClick={() => setShowLegend(!showLegend)}
+            className={`h-14 px-3.5 rounded-2xl backdrop-blur-xl border-2 font-bold text-xs flex items-center gap-1.5 shadow-2xl transition-all ${
+              showLegend
+                ? 'bg-sky-500/20 text-sky-300 border-sky-500/50'
+                : 'bg-slate-900/95 text-slate-300 border-slate-700 hover:border-sky-500 hover:text-white'
+            }`}
+            title="Toggle Map Legend"
+          >
+            <span>📊 Legend</span>
+          </button>
+        </div>
       </div>
+
+      {/* ==================================================== */}
+      {/* PROFESSIONAL MAP LEGEND OVERLAY (REQUIREMENT 2)      */}
+      {/* ==================================================== */}
+      {showLegend && (
+        <div className="absolute top-24 right-4 sm:right-6 sm:top-24 z-30 w-60 rounded-2xl bg-slate-900/95 backdrop-blur-xl border-2 border-slate-800 shadow-2xl p-3.5 space-y-2 text-xs animate-in fade-in">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+            <span className="font-extrabold text-white text-xs uppercase tracking-wider font-heading">
+              National Flood Legend
+            </span>
+            <button
+              onClick={() => setShowLegend(false)}
+              className="text-slate-400 hover:text-white p-0.5"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          <div className="space-y-1.5 font-mono text-[11px]">
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-2 text-emerald-400 font-bold">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
+                LOW RISK
+              </span>
+              <span className="text-slate-400">Score &lt; 30</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-2 text-amber-400 font-bold">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
+                MODERATE
+              </span>
+              <span className="text-slate-400">Score 30-60</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-2 text-orange-400 font-bold">
+                <span className="w-2.5 h-2.5 rounded-full bg-orange-400" />
+                HIGH RISK
+              </span>
+              <span className="text-slate-400">Score 60-80</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-2 text-rose-400 font-bold">
+                <span className="w-2.5 h-2.5 rounded-full bg-rose-400 animate-pulse" />
+                SEVERE
+              </span>
+              <span className="text-slate-400">Score &gt; 80</span>
+            </div>
+          </div>
+
+          <div className="pt-2 border-t border-slate-800 space-y-1 text-[10px] text-slate-300">
+            <div className="flex items-center gap-1.5">
+              <span>⛔</span> <span>Road Blocked / Submerged</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span>🏥</span> <span>Relief Shelter / Trauma Hub</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span>⚠️</span> <span>Official NDMA/IMD Alert</span>
+            </div>
+          </div>
+
+          <div className="pt-1 border-t border-slate-800/80 text-[9px] text-cyan-400 font-mono text-center">
+            AI ESTIMATE • LIVE GIS OVERLAY
+          </div>
+        </div>
+      )}
 
       {/* ==================================================== */}
       {/* 3. ONLY 4 FLOATING BUTTONS (On Right)                */}

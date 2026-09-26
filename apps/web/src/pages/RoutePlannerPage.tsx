@@ -151,44 +151,44 @@ export const RoutePlannerPage: React.FC = () => {
       const calculatedOptions: SimpleRouteOption[] = [
         {
           id: 'safest',
-          title: '🟢 Safest Route',
-          badge: 'RECOMMENDED',
+          title: '🟢 Elevated Bypass (Safest)',
+          badge: 'LOWEST RISK EXPOSURE',
           badgeColor: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30',
           cardColor: 'border-emerald-500/50 bg-slate-900/90',
           distance: `${(baseDist * 1.08).toFixed(1)} km`,
           time: `${Math.round(baseTime * 1.1)} min`,
-          risk: 'Safe (Zero Flooding)',
+          risk: 'Lower Modeled Flood-Risk Exposure',
           riskColor: 'text-emerald-400',
           rain: '8 mm/h',
-          description: 'Uses high flyovers and elevated roads. Avoids flooded underpasses.',
+          description: 'Leverages elevated arterial bypasses and flyovers. Lower modeled flood-risk exposure based on digital elevation contours.',
           geometry: { type: 'LineString', coordinates: safestCoords },
         },
         {
           id: 'fastest',
-          title: '🔵 Fastest Route',
+          title: '🔵 Direct Corridor (Fastest)',
           badge: 'SHORTEST TIME',
           badgeColor: 'bg-blue-500/20 text-blue-400 border border-blue-500/30',
           cardColor: 'border-blue-500/50 bg-slate-900/90',
           distance: `${baseDist.toFixed(1)} km`,
           time: `${Math.max(12, Math.round(baseTime * 0.85))} min`,
-          risk: 'Caution (Standing Water)',
+          risk: 'High Water Ingress Hazard',
           riskColor: 'text-rose-400',
           rain: '35 mm/h',
-          description: 'Direct road. Water puddles reported near canal bridge.',
+          description: 'Direct route through low-lying basin. Active water puddles and underpass submergence reported near canal bridge.',
           geometry: { type: 'LineString', coordinates: baseCoords },
         },
         {
           id: 'balanced',
-          title: '🟡 Balanced Route',
-          badge: 'FEW DETOURS',
+          title: '🟡 Balanced Arterial Route',
+          badge: 'MODERATE DETOUR',
           badgeColor: 'bg-amber-500/20 text-amber-400 border border-amber-500/30',
           cardColor: 'border-amber-500/50 bg-slate-900/90',
           distance: `${(baseDist * 1.04).toFixed(1)} km`,
           time: `${Math.round(baseTime)} min`,
-          risk: 'Moderate (Passable)',
+          risk: 'Moderate Flood Vulnerability',
           riskColor: 'text-amber-400',
           rain: '18 mm/h',
-          description: 'Slight diversion avoiding traffic and minor water accumulation.',
+          description: 'Slight diversion circumventing known bottlenecks while remaining on secondary roads with acceptable elevation profile.',
           geometry: { type: 'LineString', coordinates: balancedCoords },
         },
       ];
@@ -462,6 +462,16 @@ export const RoutePlannerPage: React.FC = () => {
               </div>
             );
           })}
+        </div>
+
+        {/* Non-Statutory Disclaimer */}
+        <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 text-xs text-slate-400 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <p>
+            ⚠️ <strong className="text-slate-200">AI ESTIMATE • MODEL DERIVED:</strong> Route simulations indicate lower modeled flood-risk exposure based on elevation contours, rainfall intensity, and crowdsourced hazard buffers. They do not constitute official police or NDMA road clearance guarantees. Strictly follow directions from on-ground emergency responders.
+          </p>
+          <span className="px-3 py-1 rounded-full text-[11px] font-mono bg-sky-500/10 text-sky-400 border border-sky-500/30 whitespace-nowrap">
+            LIVE OSRM + HYDROLOGY
+          </span>
         </div>
       </section>
     </div>

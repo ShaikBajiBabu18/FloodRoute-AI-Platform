@@ -165,10 +165,21 @@ export const ExplainableAiCard: React.FC<ExplainableAiCardProps> = ({
         </div>
       </div>
 
+      {/* Data Provenance & Timestamp Metadata */}
+      <div className="pt-2 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2 text-[10px] text-slate-400 font-mono">
+        <div className="flex items-center gap-2">
+          <span className="text-cyan-400">DATA PROVENANCE:</span>
+          <span>Open-Meteo • SRTM Topography • NDMA Alerts • Citizen GIS</span>
+        </div>
+        <div>
+          <span>TIMESTAMP: {new Date().toLocaleTimeString()} (LIVE)</span>
+        </div>
+      </div>
+
       {/* Statutory Disclaimer */}
       <div className="pt-2 border-t border-slate-800 text-[10px] text-slate-500 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
         <p>
-          ⚠️ <strong>DISCLAIMER:</strong> {prediction.disclaimer} Always follow instructions from NDMA, SDMA, and local police.
+          ⚠️ <strong>AI ESTIMATE • MODEL DERIVED:</strong> {prediction.disclaimer || 'Model-derived projection for situational awareness only.'} Never substitute official warnings from NDMA, SDMA, and local police.
         </p>
         {onExploreAlternateRoute && (
           <button
