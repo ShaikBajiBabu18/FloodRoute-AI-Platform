@@ -126,33 +126,46 @@ python -m uvicorn app.main:app --app-dir apps/ai-service --port 8000 --reload
 
 ---
 
-## 5. Live Hackathon Judge Demo Flow
+## 5. Hackathon Demo & Presentation Package
 
-FloodRoute AI provides a **One-Click Autonomous Demonstration Pipeline** engineered specifically for hackathon evaluation:
+All presentation slides, live scripts, system flowcharts, and technical evaluation Q&As are organized inside the [`/presentation`](presentation/) directory:
 
-1. **One-Click Analysis Trigger**: On the landing page (`http://localhost:8080`) or live map, click **"Run Flood Risk Analysis"**.
-2. **8-Step Automated Evaluation Sequence**:
-   - **Step 1: Geocoded Location & Terrain Boundary**: Identifies vulnerable low-lying hubs (e.g. Velachery Basin, Chennai or Kurla West, Mumbai) with elevation MSL.
-   - **Step 2: Weather Ingestion**: Connects to Open-Meteo & IMD radar telemetry to measure precipitation rate ($mm/h$) and cloudburst saturation.
-   - **Step 3: Multi-Variable Inundation Modeling**: Computes drainage threshold, river surge proximity, and hydraulic run-off vectors.
-   - **Step 4: AI Flood Risk Score (0–100)**: Normalizes hydraulic factors into a clear risk level (`LOW`, `MODERATE`, `HIGH`, `SEVERE`).
-   - **Step 5: Explainable Factor Breakdown**: Transparently explains the percentage contribution of rainfall, elevation, drainage, and crowdsourced reports.
-   - **Step 6: Official Disaster Warning Correlation**: Intersects active NDMA Red/Orange alerts and CWC reservoir advisories.
-   - **Step 7: Emergency Services Dispatch**: Dispatches nearest high-elevation relief shelter and 112 emergency helpline.
-   - **Step 8: Flood-Aware Safe Route Offer**: Calculates bypass corridor with **"Lower Modeled Flood-Risk Exposure"** circumventing waterlogged underpasses.
+| Document | Path | Description |
+| :--- | :--- | :--- |
+| **12-Slide Deck** | [`presentation/presentation-content.md`](presentation/presentation-content.md) | Full 12-slide hackathon presentation content with technology inventory |
+| **3-Minute Demo Script** | [`presentation/demo-script.md`](presentation/demo-script.md) | Word-for-word stage script timed from `0:00` to `3:00` |
+| **Technical Architecture** | [`presentation/architecture.md`](presentation/architecture.md) | System microservices, boundaries, data pipelines, and ER diagrams |
+| **System Flowchart** | [`presentation/system-flow.md`](presentation/system-flow.md) | End-to-end data pipeline and 10-step citizen user journey |
+| **Judging Notes & Q&A** | [`presentation/judging-notes.md`](presentation/judging-notes.md) | Evidence-based answers to 12 tough technical judge questions |
+| **Screenshot Checklist** | [`presentation/screenshots.md`](presentation/screenshots.md) | Visual catalog of all 13 core views and capture directions |
 
-3. **Context-Aware AI Copilot Assistant**:
-   - Click the bottom-right Copilot widget to ask:
-     - *"Why is the flood risk high?"*
-     - *"Is it safe to travel right now?"*
-     - *"Explain my route risk factors"*
-     - *"Find the nearest emergency shelter"*
-   - The Copilot correlates live database records, Open-Meteo radar, and multi-variable equations with deterministic fallback.
+---
 
-4. **Data Provenance & Safety Labeling Standards**:
-   - Strictly labeled: `AI ESTIMATE • AI FLOOD PREDICTION`
-   - Safe route corridors labeled: `Lower Modeled Flood-Risk Exposure` (never guarantees 100% absence of hazard; always complies with local traffic police directives).
-   - Clear distinction between `LIVE DATA` (Open-Meteo, OSRM, Geocoding) and `[DEMO DATA - SEEDED FOR EVALUATION]` in Admin command decks.
+### Demo Flow (3-Minute Timing)
+* **0:00–0:20 (The Problem)**: Flash flood hazards, trapped commuters, and lack of route-level context in weather apps.
+* **0:20–0:45 (Introducing FloodRoute AI)**: National platform translating environmental signals into transit decisions.
+* **0:45–1:20 (Location Search & Map)**: Search Velachery Basin, demonstrate 4-tier risk legend and dynamic Inundation Heatmap.
+* **1:20–1:50 (Weather & Risk Analysis)**: Trigger 8-step demo modal: 34.2 mm/h rain, 78/100 risk score, explainable factor attribution.
+* **1:50–2:20 (Route Planning)**: Contrast direct hazardous corridor vs **Elevated Bypass (Safest)** with *lower modeled flood-risk exposure*.
+* **2:20–2:40 (Emergency Services & Alerts)**: High-ground relief shelters, active NDMA alerts, and one-touch 112 dialing.
+* **2:40–2:55 (AI Assistant)**: Floating Copilot answering *"Why is the flood risk high?"* using live spatial context.
+* **2:55–3:00 (Impact & Closing)**: *"FloodRoute AI — Smarter Flood Intelligence. Safer Decisions."*
+
+---
+
+### Data Sources & Provenance
+* **Weather & Atmospheric Radar**: [Open-Meteo](https://open-meteo.com/) live API providing precipitation rate ($mm/h$), humidity, wind, and 24h accumulation.
+* **Routing & Transit Engine**: [OSRM (Open Source Routing Machine)](http://project-osrm.org/) driving directions cross-referenced against hazard buffers.
+* **Geospatial & Geocoding**: [OpenStreetMap Nominatim](https://nominatim.openstreetmap.org/) for sub-meter Indian address search.
+* **Disaster Warnings**: Synchronized official NDMA (National Disaster Management Authority) and SDMA bulletins.
+* **Computer Vision**: Python FastAPI microservice with OpenCV for flood image water-coverage segmentation.
+
+---
+
+### Technical Limitations & Disclaimers
+1. **Decision-Support Prototype**: FloodRoute AI provides computational situational awareness; it does not issue statutory evacuation orders. Citizens must comply with on-ground traffic police and NDMA directives.
+2. **Safe Route Labeling**: Routes are strictly labeled **"Lower Modeled Flood-Risk Exposure"**; the system never claims guaranteed zero-risk or absolute absence of water.
+3. **Absence of Physical SCADA Feeds**: Drainage saturation is modeled algorithmically from precipitation and elevation rather than physical smart-city pump station telemetry.
 
 ---
 
