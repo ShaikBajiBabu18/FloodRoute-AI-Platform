@@ -79,7 +79,43 @@ export const LiveMapPage: React.FC = () => {
       setAlerts(altRes.alerts || []);
       setResources(rscRes.resources || []);
     });
-  }, []);
+
+    // Check for query parameters (e.g. from Alerts "View on Map" or Home Search)
+    const latParam = searchParams.get('lat');
+    const lngParam = searchParams.get('lng');
+    const qParam = searchParams.get('q');
+    if (latParam && lngParam) {
+      const lat = parseFloat(latParam);
+      const lng = parseFloat(lngParam);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        setMapCenter([lng, lat]);
+        setMapZoom(14);
+        api.getWeatherForecast(lat, lng)
+          .then((wRes) => {
+            const curr = wRes.forecast?.current;
+            setSelectedPlace((prev) => ({
+              ...prev,
+              name: qParam || `Alert Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`,
+              temp: curr ? `${Math.round(curr.temperatureC)}°C` : '29°C',
+              weather: curr?.condition || 'Showers Reported',
+            }));
+          })
+          .catch(() => {});
+        api.getFloodRisk(lat, lng)
+          .then((rRes) => {
+            const lvl = rRes.riskLevel === 'CRITICAL' || rRes.riskLevel === 'HIGH' ? 'High' : rRes.riskLevel === 'MODERATE' ? 'Moderate' : 'Low';
+            const color = lvl === 'High' ? 'text-rose-400 bg-rose-500/20 border-rose-500/40' : lvl === 'Moderate' ? 'text-amber-400 bg-amber-500/20 border-amber-500/40' : 'text-emerald-400 bg-emerald-500/20 border-emerald-500/40';
+            setSelectedPlace((prev) => ({
+              ...prev,
+              risk: lvl,
+              riskColor: color,
+            }));
+          })
+          .catch(() => {});
+        setBottomSheetOpen(true);
+      }
+    }
+  }, [searchParams]);
 
   // Search autocomplete
   const handleSearchChange = async (val: string) => {

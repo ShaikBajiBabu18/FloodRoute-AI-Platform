@@ -54,7 +54,16 @@ export const api = {
   },
   getWeatherForecast: async (lat: number, lng: number): Promise<{ forecast: WeatherForecast }> => {
     const res = await apiClient.get(`/weather/forecast?lat=${lat}&lng=${lng}`);
-    return res.data;
+    const data = res.data;
+    if (data.forecast) return data;
+    return {
+      forecast: {
+        current: data.current,
+        hourly: data.hourly || [],
+        daily: data.daily || [],
+        sourceMeta: data.sourceMeta,
+      } as any,
+    };
   },
 
   // Flood Intelligence

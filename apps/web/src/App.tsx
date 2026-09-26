@@ -91,6 +91,21 @@ export const App: React.FC = () => {
                         <Route path="/profile" element={<ProfilePage />} />
                         <Route path="/login" element={<LoginPage />} />
                         <Route path="/register" element={<RegisterPage />} />
+                        <Route
+                          path="/admin"
+                          element={
+                            <div className="min-h-screen bg-[#020617] flex flex-col items-center justify-center space-y-4">
+                              <div className="w-10 h-10 border-4 border-sky-500 border-t-transparent rounded-full animate-spin" />
+                              <p className="text-sm font-semibold text-slate-300">Connecting to Admin Command Center...</p>
+                              <a
+                                href="http://localhost:5174"
+                                className="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-bold text-xs"
+                              >
+                                Launch Admin Portal (Port 5174)
+                              </a>
+                            </div>
+                          }
+                        />
                         <Route path="*" element={<Navigate to="/" replace />} />
                       </Routes>
                     </main>

@@ -161,6 +161,20 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     };
   }, []);
 
+  // React smoothly to center and zoom changes
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    if (center && center.length === 2 && !isNaN(center[0]) && !isNaN(center[1])) {
+      map.flyTo({
+        center: center,
+        zoom: zoom !== undefined ? zoom : map.getZoom(),
+        essential: true,
+        duration: 1200,
+      });
+    }
+  }, [center?.[0], center?.[1], zoom]);
+
   // Update Route Geometry
   useEffect(() => {
     const map = mapRef.current;

@@ -35,6 +35,8 @@ export class WeatherController {
 
       const weather = await this.service.getWeather(lat, lng);
       return res.json({
+        forecast: weather,
+        current: weather.current,
         hourly: weather.hourly,
         daily: weather.daily,
         sourceMeta: weather.sourceMeta,
