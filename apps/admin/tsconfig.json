@@ -11,14 +11,13 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "jsxImportSource": "react",
     "strict": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
     "paths": {
       "@/*": ["./src/*"],
-      "@floodroute/shared": ["../../packages/shared/src"]
+      "@floodroute/shared": ["../../packages/shared/src/index.ts"]
     }
   },
   "include": ["src"]

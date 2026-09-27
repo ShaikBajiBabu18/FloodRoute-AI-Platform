@@ -170,7 +170,9 @@ interface NationalCommandDashboardProps {
   onTriggerJudgeDemo: () => void;
 }
 
-export const NationalCommandDashboard: React.FC<NationalCommandDashboardProps> = ({ onTriggerJudgeDemo }) => {
+export const NationalCommandDashboard = ({
+  onTriggerJudgeDemo,
+}: NationalCommandDashboardProps): React.ReactElement => {
   const navigate = useNavigate();
   const [selectedHubIndex, setSelectedHubIndex] = useState(0);
   const activeHub = COMMAND_HUBS[selectedHubIndex];
