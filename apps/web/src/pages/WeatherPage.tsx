@@ -98,7 +98,7 @@ export const WeatherPage: React.FC = () => {
         { day: 'Tuesday', condition: 'Clear Sky', min: 27, max: 35, rain: 10 },
       ];
 
-  const getWeatherIcon = (cond: string) => {
+  const getWeatherIcon = (cond: string): React.ReactNode => {
     const c = cond.toLowerCase();
     if (c.includes('thunder') || c.includes('storm')) {
       return <CloudLightning className="w-12 h-12 text-amber-400" />;
@@ -245,7 +245,7 @@ export const WeatherPage: React.FC = () => {
               </div>
               <div className="text-xs font-bold text-sky-400 w-16 text-right">{d.rain}% rain</div>
               <div className="font-mono text-sm font-bold text-white w-20 text-right">
-                {d.min}° / {d.max}°
+                {`${d.min}° / ${d.max}°`}
               </div>
             </div>
           ))}
