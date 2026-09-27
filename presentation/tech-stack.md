@@ -1,32 +1,52 @@
-# FloodRoute AI — Technical Stack Reference
+# FloodRoute AI Platform — Tech Stack Summary
 
-> Exhaustive catalog of languages, frameworks, libraries, tools, and protocols powering the FloodRoute AI platform.
+**Verified Implementation Details:** All technologies listed below are directly implemented and verified in the codebase.
 
 ---
 
-| Technology | Purpose | Where Used |
-| :--- | :--- | :--- |
-| **TypeScript** | Type-safe enterprise JavaScript superset | Backend server, Citizen Web, and Admin Dashboard |
-| **Node.js** | High-performance asynchronous JavaScript runtime | Backend API Gateway (`server`) |
-| **Express.js** | Fast, minimalist web framework for REST APIs | Central API Gateway routing & middleware |
-| **React 18** | Declarative component-driven user interface library | Citizen Web Portal (`apps/web`) & Admin Portal (`apps/admin`) |
-| **Vite** | Next-generation frontend build tool and dev server | Bundling and hot module replacement for both frontend apps |
-| **Tailwind CSS** | Utility-first responsive CSS design system | Styling, animations, dark/light contrast across all web views |
-| **MapLibre GL JS** | Open-source vector and raster mapping library | Interactive spatial map canvas, heatmaps, layer toggling |
-| **OSRM** | Open Source Routing Machine for graph pathfinding | Calculating route polylines and turn-by-turn waypoints |
-| **Prisma ORM** | Next-generation type-safe Node.js / TS database client | Database modeling, schema migrations, and queries |
-| **PostgreSQL 16** | Robust relational database with spatial capabilities | Production datastore for incidents, users, shelters, alerts |
-| **SQLite** | Zero-configuration serverless SQL database engine | Offline, local development, and zero-dependency testing |
-| **Socket.IO** | Bi-directional low-latency event-based communication | Real-time incident broadcasting and live map marker sync |
-| **Python 3.10+** | Scientific computing and machine learning language | AI Computer Vision Microservice (`apps/ai-service`) |
-| **FastAPI** | High-performance modern Python web framework | Computer vision depth estimation API |
-| **OpenCV** | Computer vision library for image processing | Water body contour detection and flood segmentation |
-| **PyTorch** | Deep learning framework | Deep neural feature extraction for flood verification |
-| **Argon2id** | State-of-the-art password hashing algorithm | Secure user and admin credential management |
-| **JSON Web Tokens (JWT)** | Stateless cryptographically signed authentication | API request authorization and role enforcement |
-| **Helmet.js** | HTTP header security hardening middleware | Cross-Site Scripting (XSS) and clickjacking prevention |
-| **Recharts** | Composable React charting library built on SVG | Admin analytics dashboard and risk factor visualizations |
-| **Lucide Icons** | Accessible, consistent SVG icon system | Navigation, hazard indicators, weather and emergency status icons |
-| **Open-Meteo API** | Free weather forecast API with global radar integration | Real-time precipitation rate, humidity, wind, and rain total |
-| **Nominatim API** | OpenStreetMap reverse and forward geocoding | Indian locality search and latitude/longitude translation |
-| **Docker & Compose** | Container virtualization and orchestration | Unified multi-container deployment (`docker-compose.yml`) |
+### Frontend
+- **Framework:** React 18.3
+- **Build Tool:** Vite 5.4
+- **Language:** TypeScript 5.4
+- **Styling:** Tailwind CSS 3.4
+- **Animation:** Framer Motion 11.x
+- **Icons:** Lucide React
+- **Data Visualization:** Recharts
+
+### Backend
+- **Runtime:** Node.js v20.x
+- **Framework:** Express.js 4.19 in TypeScript
+- **Security:** Helmet, CORS, Express-Rate-Limit
+- **Validation:** Joi schema validation
+
+### Database
+- **ORM:** Prisma ORM 5.14
+- **Engines:** SQLite (local development with WAL mode) / PostgreSQL 16 compatible schema
+- **Data Models:** 19 relational entities (Users, FloodReports, DisasterAlerts, EmergencyResources, RoadConditions)
+
+### Maps
+- **GIS Canvas:** Leaflet 1.9
+- **Cartography:** OpenStreetMap Raster & Vector Tile Grids
+
+### Weather
+- **Telemetry Provider:** Open-Meteo Weather API (synced with IMD numerical weather prediction grid)
+- **Parameters:** Instantaneous rain rate ($mm/h$), 24h accumulation, hourly temperature, precipitation probability, wind speed
+
+### Geocoding
+- **Provider:** OpenStreetMap Nominatim forward & reverse geocoding API
+
+### Routing
+- **Routing Engine:** Open Source Routing Machine (OSRM) driving profile
+- **Geometric Analysis:** LineString waypoint discretization and spatial risk buffer intersection
+
+### AI & Machine Learning
+- **Computer Vision Service:** Python 3.10+, FastAPI, Uvicorn, OpenCV, NumPy (analyzes road photos for water coverage percentage, turbidity, and vehicle passability)
+- **Conversational Copilot:** Express.js context-aware natural-language assistant with deterministic offline rule fallbacks
+
+### Authentication
+- **Token Security:** Stateless JSON Web Tokens (JWT) signed via HMAC-SHA256
+- **Password Hashing:** Salted `bcryptjs` with salt rounds
+
+### Deployment
+- **Local Dev Server:** Multi-workspace orchestration via `concurrently` (Ports 5000, 8080, 5174, 8000)
+- **Production Bundle:** Node.js compiled TypeScript (`tsc`) + Vite production minified assets (`dist/`)
