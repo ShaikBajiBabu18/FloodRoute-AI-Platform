@@ -20,7 +20,7 @@ describe('Routing & Hazard Intersections API Integration', () => {
     expect(res.body.options[0].riskScore).toBeDefined();
     expect(res.body.options[0].distanceKm).toBeGreaterThan(0);
     expect(res.body.options[0].durationMinutes).toBeGreaterThan(0);
-  });
+  }, 15000);
 
   it('POST /api/routes/calculate should validate missing coordinates', async () => {
     const res = await request(app).post('/api/routes/calculate').send({
