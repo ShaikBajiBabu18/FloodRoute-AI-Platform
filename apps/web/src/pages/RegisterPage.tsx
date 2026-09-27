@@ -54,7 +54,7 @@ export const RegisterPage: React.FC = () => {
                 value={name}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
                 required
-                placeholder="Rohan Verma"
+                placeholder="Team Heroshi"
                 className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-white focus:outline-none focus:border-cyan-500"
               />
               <User className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
@@ -69,7 +69,7 @@ export const RegisterPage: React.FC = () => {
                 value={email}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                 required
-                placeholder="rohan@example.com"
+                placeholder="team.heroshi@example.com"
                 className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-white focus:outline-none focus:border-cyan-500"
               />
               <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-3" />

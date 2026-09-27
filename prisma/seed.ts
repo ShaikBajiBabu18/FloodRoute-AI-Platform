@@ -98,7 +98,7 @@ async function main() {
   const citizen = await prisma.user.create({
     data: {
       email: 'citizen@floodroute.ai',
-      name: 'Rohan Verma',
+      name: 'Team Heroshi',
       passwordHash: userPasswordHash,
       role: 'CITIZEN',
       phone: '+91-9876543212',

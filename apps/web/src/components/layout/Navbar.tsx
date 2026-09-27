@@ -89,7 +89,7 @@ export const Navbar: React.FC = () => {
                 }`}
               >
                 <User className="w-4 h-4" />
-                <span>{user ? user.name.split(' ')[0] : 'Profile'}</span>
+                <span>{user ? user.name : 'Profile'}</span>
               </Link>
             </nav>
 

@@ -69,11 +69,11 @@ export const ProfilePage: React.FC = () => {
       <div className="p-6 sm:p-8 rounded-3xl bg-slate-900 border-2 border-sky-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-6 shadow-2xl">
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 rounded-2xl bg-sky-500 text-white flex items-center justify-center font-heading font-extrabold text-2xl shadow-lg">
-            {user ? user.name.charAt(0).toUpperCase() : 'U'}
+            {user ? user.name.charAt(0).toUpperCase() : 'T'}
           </div>
           <div>
             <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-white">
-              {user?.name || 'Citizen User'}
+              {user?.name || 'Team Heroshi'}
             </h1>
             <p className="text-sm text-slate-400">
               {user?.email || 'citizen@floodroute.ai'}

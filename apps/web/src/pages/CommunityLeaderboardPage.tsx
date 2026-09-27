@@ -34,7 +34,7 @@ const COMMUNITY_BADGES: ContributionBadge[] = [
 ];
 
 const LEADERBOARD_USERS: LeaderboardEntry[] = [
-  { rank: 1, name: 'Rohan Verma', district: 'Chennai', reportsSubmitted: 34, reportsVerified: 31, points: 2850, badge: 'Community Guardian' },
+  { rank: 1, name: 'Team Heroshi', district: 'Chennai', reportsSubmitted: 34, reportsVerified: 31, points: 2850, badge: 'Community Guardian' },
   { rank: 2, name: 'Ananya Deshmukh', district: 'Mumbai Suburban', reportsSubmitted: 29, reportsVerified: 27, points: 2420, badge: 'Community Guardian' },
   { rank: 3, name: 'Karthik Raja', district: 'Chennai', reportsSubmitted: 24, reportsVerified: 22, points: 1980, badge: 'Verified Volunteer' },
   { rank: 4, name: 'Manish Baruah', district: 'Kamrup Metro', reportsSubmitted: 21, reportsVerified: 19, points: 1750, badge: 'Verified Volunteer' },
