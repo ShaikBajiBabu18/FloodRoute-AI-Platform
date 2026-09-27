@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { RiverStation } from '@floodroute/shared';
+import { API_BASE } from '../services/api';
 import { Waves, TrendingUp, TrendingDown, Minus, AlertTriangle, ShieldCheck, RefreshCw, Gauge, MapPin } from 'lucide-react';
 
 export const RiverMonitoringPage: React.FC = () => {
@@ -8,7 +9,7 @@ export const RiverMonitoringPage: React.FC = () => {
   const [filterState, setFilterState] = useState<string>('ALL');
 
   useEffect(() => {
-    fetch('/api/rivers')
+    fetch(`${API_BASE}/rivers`)
       .then((res) => res.json())
       .then((data) => {
         if (data.stations) setStations(data.stations);
@@ -21,7 +22,7 @@ export const RiverMonitoringPage: React.FC = () => {
     ? stations
     : stations.filter((s) => s.state.toLowerCase().includes(filterState.toLowerCase()));
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string): React.ReactElement => {
     if (status === 'DANGER') {
       return <span className="px-3 py-1 rounded-full text-xs font-bold bg-rose-500 text-white animate-pulse">DANGER LEVEL BREACHED</span>;
     }
@@ -31,7 +32,7 @@ export const RiverMonitoringPage: React.FC = () => {
     return <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500 text-white">NORMAL LEVEL</span>;
   };
 
-  const getTrendIcon = (trend: string) => {
+  const getTrendIcon = (trend: string): React.ReactElement => {
     if (trend === 'RISING') {
       return (
         <span className="flex items-center gap-1 text-rose-400 font-bold text-xs">
@@ -74,7 +75,7 @@ export const RiverMonitoringPage: React.FC = () => {
         <div className="flex items-center gap-3">
           <select
             value={filterState}
-            onChange={(e) => setFilterState(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFilterState(e.target.value)}
             className="bg-slate-900 border border-slate-700 text-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-cyan-500"
           >
             <option value="ALL">All River Basins</option>

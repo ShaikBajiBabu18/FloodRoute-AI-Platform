@@ -270,7 +270,7 @@ export const LiveMapPage: React.FC = () => {
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => handleSearchChange(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearchChange(e.target.value)}
               placeholder="Search city, town, or road..."
               className="w-full bg-transparent text-sm sm:text-base text-white placeholder-slate-400 outline-none"
             />

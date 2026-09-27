@@ -19,7 +19,8 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [lastEvent, setLastEvent] = useState<{ type: string; data: any; time: number } | null>(null);
 
   useEffect(() => {
-    const s = io(window.location.origin, {
+    const socketUrl = import.meta.env.VITE_WS_URL || window.location.origin;
+    const s = io(socketUrl, {
       path: '/socket.io',
       transports: ['websocket', 'polling'],
       reconnectionAttempts: 10,

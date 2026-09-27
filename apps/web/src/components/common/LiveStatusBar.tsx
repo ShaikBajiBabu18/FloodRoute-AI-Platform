@@ -101,7 +101,7 @@ export const LiveStatusBar: React.FC = () => {
         {/* Language Selector */}
         <select
           value={locale}
-          onChange={(e) => setLocale(e.target.value as any)}
+          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setLocale(e.target.value as any)}
           aria-label="Language selector"
           className="bg-slate-900 border border-slate-700 text-slate-200 rounded-md px-2 py-0.5 text-[11px] focus:outline-none focus:border-cyan-500 cursor-pointer"
         >

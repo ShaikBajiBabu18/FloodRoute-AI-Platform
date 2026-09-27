@@ -224,7 +224,7 @@ export const ReportHazardPage: React.FC = () => {
             <input
               type="text"
               value={locationName}
-              onChange={(e) => setLocationName(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLocationName(e.target.value)}
               className="w-full bg-transparent text-sm sm:text-base font-semibold text-white outline-none"
             />
           </div>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DistrictTelemetry } from '@floodroute/shared';
+import { API_BASE } from '../services/api';
 import {
   Building2,
   Search,
@@ -20,7 +21,7 @@ export const DistrictCommandPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/districts')
+    fetch(`${API_BASE}/districts`)
       .then((res) => res.json())
       .then((data) => {
         if (data.districts) {
@@ -61,7 +62,7 @@ export const DistrictCommandPage: React.FC = () => {
           <input
             type="text"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
             placeholder="Search district or state..."
             className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500"
           />

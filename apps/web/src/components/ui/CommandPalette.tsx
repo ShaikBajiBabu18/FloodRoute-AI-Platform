@@ -174,7 +174,7 @@ export const CommandPalette: React.FC<{ isOpen: boolean; onClose: () => void }> 
               type="text"
               autoFocus
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)}
               placeholder="Search commands, cities, flood maps, weather... (Press ESC to close)"
               className="w-full bg-transparent text-sm text-white placeholder-slate-400 outline-none"
             />

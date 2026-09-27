@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { API_BASE } from '../services/api';
 
 interface QueuedReport {
   id: string;
@@ -108,7 +109,7 @@ export const AccessibilityProvider: React.FC<{ children: React.ReactNode }> = ({
 
     for (const item of queuedReports) {
       try {
-        const res = await fetch('/api/reports', {
+        const res = await fetch(`${API_BASE}/reports`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(item.data),

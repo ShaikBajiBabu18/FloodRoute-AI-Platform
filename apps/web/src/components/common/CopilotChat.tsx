@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAccessibility } from '../../context/AccessibilityContext';
 import { useDemo } from '../../context/DemoContext';
+import { API_BASE } from '../../services/api';
 import {
   MessageSquare,
   X,
@@ -110,7 +111,7 @@ export const CopilotChat: React.FC = () => {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/copilot/chat', {
+      const res = await fetch(`${API_BASE}/copilot/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -359,7 +360,7 @@ export const CopilotChat: React.FC = () => {
 
           {/* Input Footer */}
           <form
-            onSubmit={(e) => {
+            onSubmit={(e: React.FormEvent<HTMLFormElement>) => {
               e.preventDefault();
               handleSend();
             }}
@@ -382,7 +383,7 @@ export const CopilotChat: React.FC = () => {
             <input
               type="text"
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInput(e.target.value)}
               placeholder="Ask Copilot about flood risk or transit..."
               className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition-colors"
             />

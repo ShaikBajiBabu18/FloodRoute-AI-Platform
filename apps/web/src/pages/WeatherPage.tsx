@@ -122,7 +122,7 @@ export const WeatherPage: React.FC = () => {
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
               placeholder="Search Indian city for weather..."
               className="w-full bg-transparent text-base text-white placeholder-slate-400 outline-none"
             />

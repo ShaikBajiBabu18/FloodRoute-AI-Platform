@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import path from 'path';
 import { errorHandler } from './middleware/errorHandler';
 import { apiRateLimiter } from './middleware/rateLimiter';
+import { ENV } from './config/env';
 
 // Modular Feature Modules (Service / Repository Architecture)
 import authRoutes from './auth/auth.routes';
@@ -37,10 +38,24 @@ app.use(
   })
 );
 
-// CORS Configuration
+// CORS Configuration supporting Vercel frontend, Admin console, and local dev
 app.use(
   cors({
-    origin: true, // Allow frontend dev servers and mobile browsers
+    origin: (origin, callback) => {
+      // Allow requests with no origin (curl, mobile webviews, server-to-server)
+      if (!origin) return callback(null, true);
+      if (
+        ENV.NODE_ENV !== 'production' ||
+        origin === ENV.CLIENT_URL ||
+        origin === ENV.ADMIN_URL ||
+        origin.endsWith('.vercel.app') ||
+        origin.includes('localhost') ||
+        origin.includes('127.0.0.1')
+      ) {
+        return callback(null, true);
+      }
+      return callback(null, true); // Permissive fallback for public emergency transit data
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization'],

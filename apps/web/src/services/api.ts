@@ -11,7 +11,10 @@ import {
   CalculatedRisk,
 } from '@floodroute/shared';
 
-export const API_BASE = '/api';
+const rawApiUrl = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+export const API_BASE = rawApiUrl
+  ? (rawApiUrl.endsWith('/api') ? rawApiUrl : `${rawApiUrl}/api`)
+  : '/api';
 
 export const apiClient = axios.create({
   baseURL: API_BASE,

@@ -143,7 +143,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     map.addControl(new maplibregl.NavigationControl({ showCompass: true }), 'bottom-right');
     map.addControl(new maplibregl.ScaleControl({ maxWidth: 100, unit: 'metric' }), 'bottom-left');
 
-    map.on('click', (e) => {
+    map.on('click', (e: maplibregl.MapMouseEvent) => {
       if (interactiveSelect && onLocationSelect) {
         onLocationSelect({
           lat: e.lngLat.lat,
@@ -547,7 +547,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
             type="text"
             placeholder="Search state, district, city, road..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-24 py-2.5 rounded-xl bg-navy-900/90 backdrop-blur-md border border-slate-700/80 text-white text-xs placeholder-slate-400 shadow-xl focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all"
           />
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
@@ -636,7 +636,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
               <input
                 type="checkbox"
                 checked={layers.reports}
-                onChange={(e) => setLayers({ ...layers, reports: e.target.checked })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLayers({ ...layers, reports: e.target.checked })}
                 className="rounded border-slate-700 text-cyan-500 focus:ring-0"
               />
             </label>
@@ -645,7 +645,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
               <input
                 type="checkbox"
                 checked={layers.alerts}
-                onChange={(e) => setLayers({ ...layers, alerts: e.target.checked })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLayers({ ...layers, alerts: e.target.checked })}
                 className="rounded border-slate-700 text-cyan-500 focus:ring-0"
               />
             </label>
@@ -654,7 +654,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
               <input
                 type="checkbox"
                 checked={layers.roads}
-                onChange={(e) => setLayers({ ...layers, roads: e.target.checked })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLayers({ ...layers, roads: e.target.checked })}
                 className="rounded border-slate-700 text-cyan-500 focus:ring-0"
               />
             </label>
@@ -663,7 +663,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
               <input
                 type="checkbox"
                 checked={layers.hospitals}
-                onChange={(e) => setLayers({ ...layers, hospitals: e.target.checked })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLayers({ ...layers, hospitals: e.target.checked })}
                 className="rounded border-slate-700 text-cyan-500 focus:ring-0"
               />
             </label>
@@ -672,7 +672,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
               <input
                 type="checkbox"
                 checked={layers.shelters}
-                onChange={(e) => setLayers({ ...layers, shelters: e.target.checked })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLayers({ ...layers, shelters: e.target.checked })}
                 className="rounded border-slate-700 text-cyan-500 focus:ring-0"
               />
             </label>
@@ -681,7 +681,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
               <input
                 type="checkbox"
                 checked={layers.police}
-                onChange={(e) => setLayers({ ...layers, police: e.target.checked, fire: e.target.checked })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLayers({ ...layers, police: e.target.checked, fire: e.target.checked })}
                 className="rounded border-slate-700 text-cyan-500 focus:ring-0"
               />
             </label>

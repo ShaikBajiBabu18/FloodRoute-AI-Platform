@@ -291,7 +291,7 @@ export const RoutePlannerPage: React.FC = () => {
                 <input
                   type="text"
                   value={fromQuery}
-                  onChange={(e) => handleSearchFrom(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearchFrom(e.target.value)}
                   placeholder="Starting location..."
                   className="w-full h-14 pl-11 pr-4 rounded-2xl bg-slate-950 border border-slate-700 text-white text-base placeholder-slate-500 outline-none focus:border-sky-500"
                 />
@@ -337,7 +337,7 @@ export const RoutePlannerPage: React.FC = () => {
                 <input
                   type="text"
                   value={toQuery}
-                  onChange={(e) => handleSearchTo(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearchTo(e.target.value)}
                   placeholder="Where are you going?"
                   className="w-full h-14 pl-11 pr-4 rounded-2xl bg-slate-950 border border-slate-700 text-white text-base placeholder-slate-500 outline-none focus:border-sky-500"
                 />

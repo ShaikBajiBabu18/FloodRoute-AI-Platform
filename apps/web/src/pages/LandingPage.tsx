@@ -77,7 +77,7 @@ export const LandingPage: React.FC = () => {
               <input
                 type="text"
                 value={destinationQuery}
-                onChange={(e) => setDestinationQuery(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDestinationQuery(e.target.value)}
                 placeholder="Where do you want to go?"
                 className="w-full bg-transparent text-base sm:text-lg text-white placeholder-slate-400 outline-none"
               />
