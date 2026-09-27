@@ -4,7 +4,7 @@ services:
     name: floodroute-gateway
     env: node
     plan: starter
-    buildCommand: npm install && npm run build --workspace=@floodroute/shared && npm run build --workspace=server && npx prisma generate --schema=./prisma/schema.postgresql.prisma
+    buildCommand: npm install && npm run build --workspace=@floodroute/shared && npm run build --workspace=@floodroute/server && npx prisma generate --schema=./prisma/schema.postgresql.prisma
     startCommand: node server/dist/index.js
     envVars:
       - key: NODE_ENV

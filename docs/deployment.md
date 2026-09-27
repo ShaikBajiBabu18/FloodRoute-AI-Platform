@@ -89,14 +89,15 @@ docker compose exec server npx ts-node prisma/seed.ts
 
 ### 4.3. Frontend & Admin: Vercel
 1. Import repository on [Vercel](https://vercel.com).
-2. For the **Citizen Portal**:
-   - Framework Preset: `Vite`
-   - Root Directory: `apps/web`
-   - Build Command: `cd ../.. && npm run build --workspace=@floodroute/shared && npm run build --workspace=apps/web`
-   - Output Directory: `dist`
+2. For the **Citizen Portal** (Standard Deployment via root `vercel.json`):
+   - Leave Root Directory as `./` (repository root)
+   - Vercel automatically uses `vercel.json` (`npm run build:web` / `apps/web/dist`)
+   - Or if Root Directory is set to `apps/web`:
+     - Build Command: `cd ../.. && npm run build --workspace=@floodroute/shared && npm run build --workspace=@floodroute/web`
+     - Output Directory: `dist`
 3. For the **Admin Command Center**:
    - Create a second Vercel project with Root Directory `apps/admin`.
-   - Build Command: `cd ../.. && npm run build --workspace=@floodroute/shared && npm run build --workspace=apps/admin`
+   - Build Command: `cd ../.. && npm run build --workspace=@floodroute/shared && npm run build --workspace=@floodroute/admin`
    - Output Directory: `dist`
 
 ---

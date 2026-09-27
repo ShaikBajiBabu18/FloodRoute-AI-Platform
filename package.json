@@ -10,15 +10,18 @@
     "apps/admin"
   ],
   "scripts": {
-    "dev": "concurrently -k -p \"[{name}]\" -n \"SERVER,WEB,ADMIN,AI\" -c \"blue.bold,green.bold,magenta.bold,yellow.bold\" \"npm run dev --workspace=server\" \"npm run dev --workspace=apps/web\" \"npm run dev --workspace=apps/admin\" \"python -m uvicorn app.main:app --app-dir apps/ai-service --port 8000 --reload\"",
-    "dev:all": "concurrently -k -p \"[{name}]\" -n \"SERVER,WEB,ADMIN,AI\" -c \"blue.bold,green.bold,magenta.bold,yellow.bold\" \"npm run dev --workspace=server\" \"npm run dev --workspace=apps/web\" \"npm run dev --workspace=apps/admin\" \"python -m uvicorn app.main:app --app-dir apps/ai-service --port 8000 --reload\"",
-    "build": "npm run build --workspace=@floodroute/shared && npm run build --workspace=server && npm run build --workspace=apps/web && npm run build --workspace=apps/admin",
+    "dev": "concurrently -k -p \"[{name}]\" -n \"SERVER,WEB,ADMIN,AI\" -c \"blue.bold,green.bold,magenta.bold,yellow.bold\" \"npm run dev --workspace=@floodroute/server\" \"npm run dev --workspace=@floodroute/web\" \"npm run dev --workspace=@floodroute/admin\" \"python -m uvicorn app.main:app --app-dir apps/ai-service --port 8000 --reload\"",
+    "dev:all": "concurrently -k -p \"[{name}]\" -n \"SERVER,WEB,ADMIN,AI\" -c \"blue.bold,green.bold,magenta.bold,yellow.bold\" \"npm run dev --workspace=@floodroute/server\" \"npm run dev --workspace=@floodroute/web\" \"npm run dev --workspace=@floodroute/admin\" \"python -m uvicorn app.main:app --app-dir apps/ai-service --port 8000 --reload\"",
+    "build": "npm run build --workspace=@floodroute/shared && npm run build --workspace=@floodroute/server && npm run build --workspace=@floodroute/web && npm run build --workspace=@floodroute/admin",
+    "build:web": "npm run build --workspace=@floodroute/shared && npm run build --workspace=@floodroute/web",
+    "build:admin": "npm run build --workspace=@floodroute/shared && npm run build --workspace=@floodroute/admin",
+    "build:server": "npm run build --workspace=@floodroute/shared && npm run build --workspace=@floodroute/server",
     "lint": "tsc --noEmit --project packages/shared/tsconfig.json && tsc --noEmit --project server/tsconfig.json && tsc --noEmit --project apps/web/tsconfig.json && tsc --noEmit --project apps/admin/tsconfig.json",
-    "test": "npm run test --workspace=server",
+    "test": "npm run test --workspace=@floodroute/server",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:seed": "ts-node prisma/seed.ts",
-    "start:server": "npm run start --workspace=server",
+    "start:server": "npm run start --workspace=@floodroute/server",
     "start:ai": "python -m uvicorn app.main:app --app-dir apps/ai-service --port 8000"
   },
   "devDependencies": {

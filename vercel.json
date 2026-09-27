@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "npm run build --workspace=@floodroute/shared && npm run build --workspace=apps/web",
+  "buildCommand": "npm run build --workspace=@floodroute/shared && npm run build --workspace=@floodroute/web",
   "outputDirectory": "apps/web/dist",
   "rewrites": [
     {
