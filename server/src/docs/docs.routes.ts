@@ -7,7 +7,7 @@ router.get('/openapi.json', (req: Request, res: Response) => {
   res.json(openApiSpec);
 });
 
-router.get('/docs', (req: Request, res: Response) => {
+const renderDocs = (req: Request, res: Response) => {
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -76,6 +76,10 @@ router.get('/docs', (req: Request, res: Response) => {
 </html>`;
   res.setHeader('Content-Type', 'text/html');
   res.send(html);
-});
+};
+
+router.get('/', renderDocs);
+router.get('/docs', renderDocs);
+router.get('/swagger', renderDocs);
 
 export default router;
