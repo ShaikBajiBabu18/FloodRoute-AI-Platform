@@ -1,63 +1,93 @@
-# FloodRoute AI — End-to-End System Flowchart
+# FloodRoute AI Platform — System Flow & Execution Lifecycle
 
-> Algorithmic data flow mapping raw geographic queries to life-saving decision support.
-
----
-
-## 1. Core End-to-End Algorithmic Flow
-
-```mermaid
-flowchart LR
-    L[Location] --> G[Geocoding]
-    G --> W[Weather]
-    W --> RE[Risk Engine]
-    RE --> RS[Risk Score]
-    RS --> M[Map]
-    M --> A[Alerts]
-    A --> E[Emergency]
-    E --> R[Route]
-    R --> RR[Route Risk]
-    RR --> DS[Decision Support]
-```
-
-### Detailed Pipeline Stage Descriptions
-
-| Stage | Operation | System Component | Description |
-| :---: | :--- | :--- | :--- |
-| **1. Location** | GPS coordinate or query input | Citizen UI / Geolocation API | User selects or searches an Indian locality (e.g. Velachery, Chennai). |
-| **2. Geocoding** | Address to lat/lon normalization | Nominatim / OSM Geocoder | Resolves search query into high-precision latitude/longitude coordinates. |
-| **3. Weather** | Real-time hydrometeorology | Open-Meteo Weather API | Ingests precipitation rate ($mm/h$), 24h accumulation, and cloudburst factors. |
-| **4. Risk Engine** | Deterministic multi-factor modeling | FloodRiskService (`server`) | Ingests rain ($35\%$), elevation ($25\%$), drainage ($20\%$), river ($15\%$), and crowd reports ($5\%$). |
-| **5. Risk Score** | Normalization & classification | Risk Attribution Engine | Produces 0–100 score and assigns tier: LOW, MODERATE, HIGH, or SEVERE. |
-| **6. Map** | Interactive spatial visualization | MapLibre GL / Vector Canvas | Renders localized risk heatmaps, hazard buffers, and road status overlays. |
-| **7. Alerts** | Statutory hazard synchronization | DisasterAlertService | Pulls contextual NDMA / IMD Red/Amber warnings and safety directives. |
-| **8. Emergency** | High-ground shelter indexing | EmergencyResourceService | Surfaces verified high-ground relief centers, NDRF camps, and 112 quick-dial. |
-| **9. Route** | Topological pathfinding | OSRM / OpenStreetMap | Calculates primary and alternative transit corridors between origin & destination. |
-| **10. Route Risk** | Polyline segment risk sampling | RouteRiskEvaluator | Samples waypoints along candidate polylines against flood inundation surfaces. |
-| **11. Decision Support** | Transparent advisory recommendation | DecisionSupportEngine | Recommends the corridor with **Lower Modeled Flood-Risk Exposure** with full disclaimers. |
+**Document Purpose:** Complete end-to-end execution flow documenting the 10 core operational stages and corresponding fallback failure paths.
 
 ---
 
-## 2. Interactive User Decision Flowchart
+## The 10-Step Core System Flow
 
-```mermaid
-flowchart TD
-    START(["User Enters Platform"]) --> INPUT["Enter Destination or Origin"]
-    INPUT --> GEO["Geocode Coordinates (Nominatim)"]
-    GEO --> FETCH_WEATHER["Fetch Live Weather (Open-Meteo)"]
-    FETCH_WEATHER --> CALC_RISK["Execute Explainable Risk Engine"]
-    
-    CALC_RISK --> SCORE{"Flood Risk Level"}
-    SCORE -->|LOW / MODERATE| SAFE_TRANSIT["Display Normal Route Options"]
-    SCORE -->|HIGH / SEVERE| ALERT_USER["Display Inundation Alert & High Ground"]
-
-    ALERT_USER --> ROUTING["Compute Flood-Resilient Routes (OSRM)"]
-    SAFE_TRANSIT --> ROUTING
-
-    ROUTING --> EVAL_PATHS["Evaluate Segment Inundation Risk"]
-    EVAL_PATHS --> RECOMMEND["Recommend Lower Modeled Risk Route"]
-    
-    RECOMMEND --> SHELTER_CHECK{"Citizen Needs Refuge?"}
-    SHELTER_CHECK -->|Yes| EMERGENCY_DRAWER["Show Nearest Verified High-Ground Shelters + 112 SOS"]
-    SHELTER_CHECK -->|No| NAVIGATION["Follow Turn-by-Turn Flood Advisories"]
+```text
+[1. User Searches Location]
+           │
+           ▼
+[2. Application Resolves Location via Geocoding]
+           │
+           ▼
+[3. Weather & Environmental Telemetry Retrieved]
+           │
+           ▼
+[4. Flood-Risk Engine Correlates Available Factors]
+           │
+           ▼
+[5. Explainable Risk Result & Score Generated]
+           │
+           ▼
+[6. GIS Map Displays Results & Inundation Polygons]
+           │
+           ▼
+[7. Route Service Queries Candidate Trajectories]
+           │
+           ▼
+[8. Evaluates Modeled Flood-Risk Exposure (Direct vs Bypass)]
+           │
+           ▼
+[9. Emergency Services & Shelters Queried & Displayed]
+           │
+           ▼
+[10. AI Assistant Ingests Context & Explains Risks to User]
 ```
+
+---
+
+## Detailed Step-by-Step Breakdown & Failure Handling
+
+### Step 1: User Searches for a Location
+- **Action:** User types an Indian municipal query (e.g., "Patna", "Chennai", "Kurla, Mumbai") into the search bar.
+- **Normal Flow:** Debounced query string ($>2$ characters) is sent to `/api/routes/geocode?q=...`.
+- **Failure Path:** If input is blank or $<3$ characters, search suggestions remain collapsed. If offline, the UI surfaces pre-seeded quick-location chips (`Chennai (Velachery)`, `Mumbai (Kurla)`, `Bengaluru (Silk Board)`).
+
+### Step 2: Application Resolves Location
+- **Action:** API queries OpenStreetMap Nominatim for forward geocoding.
+- **Normal Flow:** Resolves latitude, longitude, display name, district, and state bounding box. Map smoothly executes a `flyTo` transition to center on the target coordinates.
+- **Failure Path:** If Nominatim times out ($>5$s) or is rate-limited, system returns cached Indian metro coordinates and displays an informative toast notification.
+
+### Step 3: Weather & Environmental Information is Retrieved
+- **Action:** Frontend calls `/api/weather/current?lat=...&lng=...` and `/api/weather/forecast?...`.
+- **Normal Flow:** Gateway proxies request to Open-Meteo API (synced with IMD grid) returning real-time precipitation rate ($mm/h$), 24h accumulation, hourly forecast, and wind speed.
+- **Failure Path:** If Open-Meteo is unreachable, the weather service falls back to pre-compiled meteorological seasonal baselines with an explicit `[MODEL ESTIMATE]` badge.
+
+### Step 4: Flood-Risk Engine Processes Available Factors
+- **Action:** Gateway executes the 5-factor mathematical model for the resolved coordinate:
+  $$\text{Risk Score} = 0.35(R) + 0.25(E) + 0.20(D) + 0.15(A) + 0.05(C)$$
+- **Normal Flow:** Computes real-time rain intensity ($R$), 30m SRTM digital elevation depression ($E$), drainage soil saturation index ($D$), active disaster advisories ($A$), and verified nearby citizen reports ($C$).
+- **Failure Path:** If any single data feed is missing (e.g., no active citizen reports), that factor defaults to nominal zero or baseline weight, ensuring risk evaluation never crashes.
+
+### Step 5: Risk Result is Generated
+- **Action:** Risk score ($0–100$) and qualitative tier (`LOW`, `MODERATE`, `HIGH`, `CRITICAL`) are computed alongside a factor-by-factor score breakdown array.
+- **Normal Flow:** Returns JSON payload with `score`, `level`, `reasons`, and `factors` attribution.
+- **Failure Path:** If calculation throws an unhandled error, default low-risk advisory is returned with safety disclaimer.
+
+### Step 6: Map Displays the Result
+- **Action:** Leaflet GIS canvas renders the risk marker, updates the bottom telemetry drawer, and overlays local hazard pins and river status.
+- **Normal Flow:** Dynamic color-coding reflects the risk tier (Green for Low, Yellow for Moderate, Red for Critical).
+- **Failure Path:** If vector overlay fails to mount, tabular cards display all critical numerical telemetry without blocking user navigation.
+
+### Step 7: Route Service Calculates Routes
+- **Action:** User requests directions from origin to destination coordinates.
+- **Normal Flow:** Gateway queries Open Source Routing Machine (OSRM) to generate multiple route geometry polylines with turn-by-turn maneuvers.
+- **Failure Path:** If OSRM server is busy or unreachable, local topological elevation geometry algorithm calculates alternative road corridor waypoints.
+
+### Step 8: Application Evaluates Modeled Flood-Risk Exposure
+- **Action:** Discretizes route polylines and samples spatial buffers against elevation depressions and waterlogged hazard reports.
+- **Normal Flow:** Generates comparison: **Direct Corridor (Fastest)** vs. **Elevated Bypass (Safest)**. Safest option is explicitly badged as **"Lower Modeled Flood-Risk Exposure"**.
+- **Failure Path:** The system never claims "100% safe" or "guaranteed safe", strictly preserving ethical safety guidelines.
+
+### Step 9: Emergency Services are Displayed Where Available
+- **Action:** Queries `/api/resources` for facilities near the active location or along the route.
+- **Normal Flow:** Displays categorized cards for Hospitals, Fire Stations, NDRF liaison outposts, and designated relief shelters with direct 112 dialing and distance.
+- **Failure Path:** If no facilities exist in immediate radius, displays district-level helpline numbers and national 112 contact card.
+
+### Step 10: AI Assistant Explains Relevant Information
+- **Action:** User interacts with Copilot Chat or clicks an explainability pill (*"Why is risk elevated?"*).
+- **Normal Flow:** Copilot ingests location, current rainfall ($mm/h$), elevation ($m$ MSL), and computed route risk score into context and returns plain-language safety recommendations.
+- **Failure Path:** If the backend AI service is disconnected, the client-side Copilot engine serves structured, deterministic hydrological advisories.
